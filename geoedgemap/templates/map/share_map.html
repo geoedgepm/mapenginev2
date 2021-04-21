@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>GeoEDGE Map Engine</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="shortcut icon" href="{% static 'img/fav.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style_adpc.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/leaflet.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-tour-standalone.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery-ui.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/appMap.css' %}">
+
+	{% block css_link %}
+	{% endblock %}
+
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08kjICw-tuCcRfgATXY6qOMMQxxnY-ys"  async defer></script>
+    <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/bootstrap-tour-standalone.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.js' %}"></script>
+
+	<!-- [START] - Overlay Map Layer -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-providers.js' %}"></script>
+	<!-- [END] - Overlay Map Layer -->
+
+	<!-- [START] - Overlay Map Layer - Google -->
+	<script type="text/javascript" src="{% static 'js/leaflet/Leaflet.GoogleMutant.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Google -->
+
+	<!-- [START] - Get Geojson through ajax -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.ajax.js' %}"></script>
+	<!-- [END] - Get Geojson through ajax -->
+
+	<!-- [START] - Load KML to Map -->
+	<script type="text/javascript" src="{% static 'js/leaflet/KML.js' %}"></script>
+	<!-- [END] - Load KML to Map -->
+
+	{% block javascript_link %}
+	{% endblock %}
+
+	<!-- [START] - Switch -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-toggle.min.css' %}">
+	<script type="text/javascript" src="{% static 'js/bootstrap-toggle.min.js' %}"></script>
+	<!-- [END] - Switch -->
+
+
+	<!-- [START] - DRAW -->
+	<script type="text/javascript" src="{% static 'draw/Leaflet.draw.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/Leaflet.Draw.Event.js' %}"></script>
+	<link rel="stylesheet" type="text/css" href="{% static 'draw/leaflet.draw.css' %}">
+	<script type="text/javascript" src="{% static 'draw/Toolbar.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/Tooltip.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/ext/GeometryUtil.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/LatLngUtil.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/LineUtil.Intersect.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/Polygon.Intersect.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/Polyline.Intersect.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/TouchEvents.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/draw/DrawToolbar.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Feature.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.SimpleShape.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Polyline.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Marker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Circle.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.CircleMarker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Polygon.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Rectangle.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/edit/EditToolbar.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/EditToolbar.Edit.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/EditToolbar.Delete.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/Control.Draw.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Poly.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.SimpleShape.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Rectangle.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Marker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.CircleMarker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Circle.js' %}"></script>
+	<!-- [END] - DRAW -->
+
+	<!-- [START] - Color Range of Layers -->
+	<script type="text/javascript" src="{% static 'js/leaflet/choropleth.js' %}"></script>
+	<!-- [END] - Color Range of Layers -->
+
+	<!-- [START] - Bubble -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-bubble.js' %}"></script>
+	<!-- [END] - Bubble -->
+
+	<!-- [START] - Spatial Analaysis -->
+	<script type="text/javascript" src="{% static 'js/leaflet/turf.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/clipper.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/L.Clipper.js' %}"></script>
+	<!-- [END] - Spatial Analaysis -->
+
+
+	<!-- [START] - Right Side Switch -->
+	<script src="{% static 'js/sidebarEffects.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/w-switcher4963.js' %}"></script>
+	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/switcher.css' %}">
+	<!-- [END] - Right Side Switch -->
+
+	<!--  Chart -->
+	<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.autocomplete.js' %}"></script>
+
+	<!-- Print -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.browser.print.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.browser.print.utils.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.browser.print.sizes.js' %}"></script>
+
+    <script src="{% static 'map/map_main.js' %}"></script>
+
+<style>
+
+	#nav_right li {padding-left:5px;}
+	 h5 {font-weight:bold;}
+
+	.glyphicon {font-size:16px;}
+
+	a {cursor:pointer;}
+
+	.ddListContainer > a > img, .ddListContainer > ul li a > img {max-width:120px;}
+	.demo-popup {width:150px; !important}
+	.mtitle {position:absolute;font-size:17px;color:#ffffff;font-weight:bold;}
+
+  	.navbar .nav > li > a, .navbar .dropdown-menu a {margin-top:3px;}
+
+	.ui-slider-handle {background-color:#ffffff;width:5px;}
+
+  	@media screen and (min-width: 768px) {
+	    #style {
+	        float:left;
+	        position: absolute;
+	    	bottom: 0;
+
+	    	}
+		}
+
+	#map {
+		width:100%;
+		height:100%;
+		position:fixed;
+		left:0px;
+		bottom: -45px;
+		background-color: #a1d3df;
+	}
+
+	#map .leaflet-right, .leaflet-draw{
+		display:none;
+	}
+
+
+	.leaflet-popup-content-wrapper{
+		/*height: 90px; */
+		border-radius: 3px;
+	}
+
+	.leaflet-popup-content{
+		margin:5px;
+		padding-top:15px;
+	}
+
+	#measurements{
+		z-index:100000000000000;
+		position:fixed;
+		left:60px;
+		top:50px;
+		width:13%;
+		background-color:rgba(255,255,255,1);
+		color:#000;
+		border:none;
+		display:none;
+	}
+
+	#con_panel{
+		position:absolute;
+		top:47px;
+		left:67%;
+		z-index:100000000000000000000000000000;
+		width:250px;
+		display:none;
+	}
+
+
+/* sortable - Layer Order */
+
+	.ui-state-default{
+		border: 1px solid rgba(0, 0, 0,.2);
+		background-color: rgba(0, 77, 153,.3);
+    	/* -webkit-box-shadow: 0px 0px 10px #000;
+   	 	-moz-box-shadow: 0px 0px 10px #000;
+    	box-shadow: 0px 0px 10px #000;
+		/*
+	}
+	.ui-state-highlight {
+		width: 210px;
+		height: 1.5em; line-height: 1.2em;
+		border: 1px solid #888888;
+		background-color: rgba(0, 77, 153,.3)!important;
+    	/*-webkit-box-shadow: 0px 0px 10px #888;
+   	 	-moz-box-shadow: 0px 0px 10px #888;
+    	box-shadow: 0px 0px 10px #888;
+    	*/
+	}
+
+	.glyphicon-remove-circle {cursor:pointer;}
+
+	#sortable { list-style-type: none; margin: 0; padding: 0; width: 80%; }
+
+  	#sortable li { margin: 0 5px 5px 5px; padding: 5px; font-size: 15px; height: 4.0em; color:#ffffff;}
+
+  	html>body #sortable li { height: 3.0em; line-height: 1.2em; }
+
+  	#sortable li span { position: absolute; }
+
+/* /sortable - Layer Order */
+</style>
+
+</head>
+<body style="width:100% !important;overflow:hidden;background:transparent;" onload='init_load()'>
+
+<div id="preloader">
+  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:100px;margin-left:50px;"></div>
+</div>
+
+<!-- [START] - Navbar -->
+<div id="map_menubar" class="navbar transparent navbar-inverse navbar-fixed-top" style="position:absolute;">
+
+	<div class="navbar-header">
+	    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-inverse-collapse">
+	      <span class="icon-bar"></span>
+	      <span class="icon-bar"></span>
+	      <span class="icon-bar"></span>
+	    </button>
+	    <a class="navbar-brand" href="#">GeoEDGE Pro</a>
+  	</div>
+
+
+  	<div class="navbar-collapse collapse navbar-inverse-collapse">
+
+		<ul class="nav navbar-nav">
+	      	<li class="">
+	       		<div class="main clearfix">
+					<div id="st-trigger-effects" class="column">
+						<button id="sidepanel_open" class="btn btn-xs btn-default" style="background:transparent;border:none;color:#ffffff;margin-top:7px;" data-effect="st-effect-1"><span style="margin-top:-7px;" class="glyphicon glyphicon-th-list"></span></button>
+					</div>
+		   		</div>
+	      	</li>
+	  		<li>
+	  			<a class="mtitle" style="background:inherited;pointer-events:none;" title="Add Layer"><strong id="map_title">Untitled Map</strong></a>
+	  		</li>
+	  		<span></span>
+    	</ul>
+
+    	<ul class="nav navbar-nav navbar-right" id="nav_right">
+      	</ul>
+
+  	</div>
+</div>
+<!-- [END] - Navbar -->
+
+
+
+<div id="st-container" class="st-container" style="position: relative;">
+
+	<!-- [START] Left Side -->
+
+	<div class="st-menu st-effect-1" id="menu-1" style="background:rgba(29, 29, 29, 0.6);color:#ffffff; top:45px;">
+
+		<div style="margin-left:10px;">
+			<br>
+			Change Layer Order
+			<div style="margin:20px 0;"></div>
+
+			<ul id="sortable" style="">
+			</ul>
+
+		</div>
+
+	</div>
+
+	<!-- [END] Left Side -->
+
+
+<div id="map_area">
+	<div id="map"></div>
+</div>
+
+</div>
+
+
+<!-- [START] - Legend -->
+<div id="legend" style="position: fixed; top: 50px; right: 5px;width:15%;background-color:rgba(43, 41, 41,0.8);height:250px;z-index:10000;border-radius:5px;padding:10px;overflow:auto;color:#ffffff;">
+
+	<div class="legendhand" style="height:25px;width:100%;border-bottom:1px solid #808080;paddong:2px; cursor:move;">
+		<strong>Legend</strong>
+	</div>
+    <div id="legend_content" class="scrollable" style="overflow-y:auto;overflow-x:hidden;">
+		<div style="width:100%" id="legend_content_layer"></div>
+		<div style="width:100%" id="legend_content_analysis"></div>
+	</div>
+
+</div>
+<!-- [END] - Legend -->
+
+</body>
+
+<script type="text/javascript">
+
+	function init_load(){
+
+		{% if map_id %}
+
+			var mapID = {{ map_id }};
+			var layer_status = "{{ layer_status }}";
+
+			if (layer_status == 1) {
+
+				var map_type = "{{ map_type }}";
+				var layerfile_type = "{{ layer_file_type }}";
+				var filename = "{{ filename }}";
+				var layerName = "{{ layer_name }}";
+
+				init(layer_status, mapID, layerfile_type, filename, map_type);
+
+				$("#map_title").html(layerName);
+
+			}else{
+				init();
+			}
+
+		{% else %}
+
+			init();
+
+		{% endif %}
+
+	}
+
+	jQuery(window).load(function() {
+		jQuery("#status").delay(1000).fadeOut();
+		jQuery("#preloader").delay(1000).fadeOut("slow");
+	});
+
+</script>
+
+</html>

@@ -1,0 +1,321 @@
+{% extends 'base_index.html' %}
+{% load static %}
+
+{% block content %}
+
+<nav role="navigation" class="navbar navbar-default">
+
+    <div class="navbar-header">
+        <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+    </div>
+
+    <ul class="nav navbar-nav hidden-xs" style="width:70px;">
+    </ul>
+
+    <ul class="nav navbar-nav hidden-xs" style="width:70px;">
+        <li>
+            <a href="#nav,.navbar-header" data-toggle="class:nav-xs,nav-xs" class="text-muted" id="cl1" style="margin-left:10px;margin-top:10px;">
+              <i class="fa fa-indent text" style="font-size:18px;color:#8097C3;"></i>
+              <i class="fa fa-dedent text-active" style="font-size:18px;color:#8097C3;"></i>
+            </a>
+        </li>
+    </ul>
+
+    <div id="navbarCollapse" class="collapse navbar-collapse">
+
+        <ul class="nav navbar-nav">
+            <li style="width:185px;margin-top:10px;">
+                <a href="#">
+                    <img src="{% static 'img/logo.png' %}" style="width:120px;padding:0;">
+                </a>
+            </li>
+        </ul>
+
+        <div class="col-xs-4 col-xs-offset-0" id="sebox">
+            <div class="input-group" style="margin-top:8px;">
+
+                <!--<div class="input-group-btn search-panel">-->
+                    <!--<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">-->
+                    	<!--<span id="search_concept"><span class="glyphicon glyphicon-list"></span></span> <span class="caret"></span>-->
+                    <!--</button>-->
+                    <!--<ul class="dropdown-menu" role="menu">-->
+                        <!--<li><a style="width:100%;padding:5px 8px 5px;" href="#user">User</a></li>-->
+                        <!--<li><a style="width:100%;padding:5px 8px 5px;" href="#group">Group</a></li>-->
+                        <!--<li><a style="width:100%;padding:5px 8px 5px;" href="#map">Map</a></li>-->
+                    <!--</ul>-->
+                <!--</div>-->
+
+                <!--<input type="hidden" name="search_param" value="all" id="search_param">-->
+                <!--<input type="text" class="form-control" name="u_search" id="u_search" placeholder="Search for Users,Group or Map">-->
+
+                <!--<ul id="search_list" class="dropdown-menu " style="min-width: 240px;height:auto; max-height:300px;overflow:auto;display:none;margin-left:65px;" role="menu" aria-labelledby="dropdownMenu3">-->
+                <!--</ul>-->
+
+                <!--<span class="input-group-btn">-->
+                    <!--<button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>-->
+                <!--</span>-->
+
+            </div>
+        </div>
+
+        <ul class="nav navbar-nav navbar-right" style="margin-top:10px;width:200px;">
+		<style>
+
+		  .dropdown-menu ul li a {padding:0px;}
+		  .dropdown-menu ul li img {width:30px;}
+		  .navbar .nav > li > a, .navbar .dropdown-menu a {padding:3px 5px 3px;}
+
+		  ul
+          {
+              list-style:none;
+          }
+          .glyphicon-info-sign {font-size:18px;}
+
+		</style>
+
+            <li class="dropdown" style="padding:0;margin:0px;">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" onclick="addNotftns()"> <span class="glyphicon glyphicon-info-sign"></span> <span id="num_of_notcn"></span><span class="caret"></span></a>
+
+                <ul class="dropdown-menu dropdown-cart" role="menu" id="notftn_list" style="padding:0;">
+                </ul>
+            </li>
+
+	        <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown">
+                    <span id="settings_img">
+                        <img src="{% static 'img/1601481.jpg' %}" class="img-circle" style="width:23px;">
+                    </span>&nbsp;
+                    <span id="login_uname">
+                        <!--{% if user.is_authenticated %}-->
+                        <!--     {{ user.username }}-->
+                        <!--{% endif %}-->
+                    </span>
+                    <b class="caret"></b>
+                </a>
+
+                <ul class="dropdown-menu">
+                    <li><a href="{% url 'geoedge:index' %}" style="width:100%;">My Profile</a></li>
+                    <li class="divider"></li>
+                    <li><a href="{% url 'logout' %}" style="width:100%;">Log out</a></li>
+                </ul>
+            </li>
+        </ul>
+
+    </div>
+
+</nav>
+
+
+<section class="vbox">
+    <section>
+        <section class="hbox stretch">
+
+            <aside class="bg-info dk aside " id="nav" style="">
+                <section class="vbox">
+                    <section class="w-f-md scrollable">
+                        <div class="slim-scroll" data-height="auto" data-disable-fade-out="true" data-distance="0" data-size="10px" data-railOpacity="0.2">
+                            <div class="wrapper" id="clo">
+
+                                <div class="text-center m-b m-t">
+                                    <a class="thumb-lg">
+						                <span id="user_photo"></span>
+                                        <img style="width:80%; height:80%;" src="{% static 'img/1601481.jpg' %}" class="img-circle">
+                                    </a>
+                                    <div>
+                                         <div id="username" class="h5 m-t-xs m-b-xs">
+                                        {% if user.is_authenticated %}
+                                             {{ user.username }}
+                                        {% else %}
+                                             User Name
+                                        {% endif %}
+                                        </div>
+                                        <small id="email" class="text-muted"><i class="fa fa-envelope-o"></i>
+                                            {% if user.is_authenticated %}
+                                                {{ user.email }}
+                                            {% else %}
+                                                 email@user.com
+                                            {% endif %}
+                                        </small>
+                                        <br>
+                                    </div>
+                                </div>
+
+                                <div class="panel wrapper">
+                                    <div class="row text-center">
+                                        <div class="col-xs-6">
+                                            <a href="#">
+                                                <span id="map_count" class="m-b-xs h4 block" style="color:#17A05A">0</span>
+                                                <small class="text-info">Maps</small>
+                                            </a>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <a href="#">
+                                                <span id="layer_count" class="m-b-xs h4 block" style="color:#17A05A">0</span>
+                                                <small class="text-info">Layers</small>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <!--<small class="text-uc text-xs text-muted">Description</small>-->
+                                    <!--<p id="layer_description"></p>-->
+                                    <!--<div class="line"></div>-->
+                                </div>
+                            </div>
+
+
+                            <!-- nav -->
+                            <nav class="nav-primary">
+                                <ul id="dddr" class="menu_list_ul nav bg clearfix">
+
+                                    <li class="menu_list active">
+                                        <a href="" id="u_summary" onclick="click_page(null)">
+                                            <i class="icon-settings text-white"></i>
+                                            <span class="font-bold">Dashboard</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="mylayer" onclick="click_page('my_layer')">
+                                            <i class="icon-layers text-white"></i>
+                                            <span id="layer_name" class="font-bold">My Project</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="mylayer" onclick="click_page('my_layer')">
+                                            <i class="icon-layers text-white"></i>
+                                            <span id="layer_name" class="font-bold">My Map</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a  id="mymap" onclick="click_page('my_map')">
+                                            <i class="icon-map text-white"></i>
+                                            <span id="map_name" class="font-bold">My Layer</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="group" onclick="click_page('my_group')">
+                                            <i class="icon-users text-white"></i>
+                                            <span id="g_name" class="font-bold">My Groups</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="user_manager" onclick="click_page('user_manage')">
+                                            <i class="icon-user-following text-white"></i>
+                                            <span class="font-bold">Users</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="a_layers" onclick="click_page('all_layer')">
+                                            <i class="icon-puzzle text-white"></i>
+                                            <span class="font-bold">All Project</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="a_maps" onclick="click_page('all_map')">
+                                            <i class="icon-globe text-white"></i>
+                                            <span class="font-bold">All Layer</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="a_groups" onclick="click_page('all_group')">
+                                            <i class="icon-list text-white"></i>
+                                            <span class="font-bold">All Groups</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_list">
+                                        <a id="user_profile" onclick="click_profile_page()">
+                                            <i class="icon-equalizer text-white"></i>
+                                            <span id="p_link" class="font-bold">Edit Profile</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+				        </div>
+                    </section>
+                </section>
+            </aside>
+
+
+
+
+            <section id="content">
+                <section class="vbox">
+                    <section class="scrollable">
+                        <section class="hbox stretch">
+
+                            <aside class="bg-white">
+                                <section>
+                                    <section class="scrollable" style="height:590px;overflow-y:auto;">
+
+                                        {% block main_content %}
+                                        {% endblock %}
+
+                                    </section>
+                                </section>
+
+                            </aside>
+
+                            <aside class="col-lg-2 b-l" style="padding-left:0px;padding-right:5px;">
+
+                                <section class="vbox" style="height:100%;overflow:none;">
+                                    <section class="scrollable padder-v" style="overflow:hidden;">
+
+                                        <div class="panel-group" id="accordion">
+
+                                            <div class="panel panel-primary">
+                                                <div class="panel-heading">
+                                                    <h4 class="panel-title">
+                                                        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                                            <span style="color:#fff;"> <strong> Latest Maps </strong></span>
+                                                        </a><i class="indicator glyphicon glyphicon-chevron-down  pull-right"></i>
+                                                    </h4>
+                                                </div>
+
+                                                <div id="collapseOne" class="panel-collapse collapse in">
+                                                    <div class="panel-body">
+                                                        <ul id="map_list" class="list-group" style="height:480px;overflow:auto;">
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="panel panel-primary">
+                                                <div class="panel-heading">
+                                                    <h4 class="panel-title ">
+                                                        <a class="accordion-toggle " data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                                                            <span style="color:#fff;"> <strong>Latest News </strong></span>
+                                                        </a><i class="indicator glyphicon glyphicon-chevron-up  pull-right"></i>
+                                                    </h4>
+                                                </div>
+                                                <div id="collapseTwo" class="panel-collapse collapse">
+                                                    <div class="panel-body">
+                                                        <ul id="news_list" class="list-group" style="height:500px;overflow:auto;margin:5px;margin-top:10px;">
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </section>
+                                </section>
+                            </aside>
+
+                        </section>
+                    </section>
+                </section>
+            </section>
+
+        </section>
+
+        <!--<a href="#" class="hide nav-off-screen-block" data-toggle="class:nav-off-screen,open" data-target="#nav,html"></a>-->
+    </section>
+</section>
+
+
+{% endblock %}

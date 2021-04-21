@@ -1,0 +1,332 @@
+{% extends 'geoedge/index_group.html' %}
+
+{% block main_content %}
+
+<style>
+    #tb1 {float:left;margin-top:8px;}
+        @-moz-document url-prefix() {
+        #tb1 {float:left;margin-top:8px;}
+    }
+
+    .btn-file {
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-file input[type=file] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        min-width: 100%;
+        min-height: 100%;
+        font-size: 100px;
+        text-align: right;
+        filter: alpha(opacity=0);
+        opacity: 0;
+        outline: none;
+        background: white;
+        cursor: inherit;
+        display: block;
+    }
+    #e_photo_filetext {width:50%}
+
+    @-moz-document url-prefix() {
+
+        #e_photo_filetext {margin-left:34%; width:100%;}
+        #in {margin-left:17%;}
+    }
+
+    @-moz-document url-prefix() {
+        #in {margin-left:14%;}
+    }
+
+    .invalid{
+        color: red;
+        font-size: 11px;
+        text-align: left;
+      }
+
+      .valid{
+       display: none!important;
+      }
+</style>
+
+<div id="project">
+    <div id="projecttab">
+        <div class="col-md-12">
+
+         <div id="dashboard_section">
+
+             <section class="panel panel-default">
+                 <header class="panel-heading font-bold">
+                     <span id="recent_mheading">My Recent Map &nbsp;</span>
+                     <a id="map_view" href="#" target="_blank" class="btn btn-xs btn-success" style="float:right;">
+                         <span class="glyphicon glyphicon-eye-open"></span> View Map
+                     </a>
+                    {% if group.pk %}
+                        <a href="{% url 'map:index_group' gid=group.pk %}" style="float:right;margin-right:10px;" class="btn btn-xs btn-success" id="add_pmap" target="_blank">
+                            <strong>Create Map</strong>
+                        </a>
+                    {% endif %}
+                 </header>
+
+                 <div class="panel-body">
+                     <div id="map" style="height:310px; width:100%"></div>
+                 </div>
+             </section>
+
+             <section class="panel panel-default">
+                 <header id="chart_heading" class="panel-heading font-bold">My Layers and Maps Summary</header>
+                 <div class="panel-body">
+                     <div class="col-md-10">
+                         <div style="width: 100%;">
+                            <canvas id="map_chart"></canvas>
+                         </div>
+                         <div class="col-md-2">
+                             <div id="lineLegend_div"></div>
+                         </div>
+                     </div>
+                     <br><br>
+             </section>
+
+         </div>
+
+
+         <div id="layers_maps_table_section" style="display:none;">
+
+            <section class="panel panel-default">
+                <div class="tab-pane" id="interaction">
+                    <!--<div id="preloader">-->
+                        <!--<div id="status"><img src="" style="width:100px;margin-left:50px;"></div>-->
+                    <!--</div>-->
+                    <div class="text-center wrapper">
+
+                        <div class="col-md-12">
+                            <div id="tb" style="padding:3px;float:right;margin-right:3%;" >
+                                    <div class="row clearfix">
+                                        <input id="search_layer" style="line-height:26px;border:1px solid #ccc">
+
+                                             <div class="btn-group" role="group" aria-label="...">
+
+                                                <a href="#" class="btn btn-primary" plain="true" onclick="doSearch()">
+                                                    <span class="glyphicon glyphicon-search"></span>
+                                                </a>
+
+                                                <a href="#" class="btn btn-warning" plain="true" onclick="searchClose()">
+                                                    <span class="glyphicon glyphicon-refresh" ></span>
+                                                </a>
+
+                                             </div>
+
+                                    </div>
+                                </div>
+
+                                <div id="tb1">
+                                    <div id="new_map_button" style="display:none;">
+                                        <a href="{% url 'map:index' %}" id="add_map" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> New Map</a>
+                                    </div>
+
+                                    <div id="new_group_button" style="display:none;">
+                                        <a id="add_group" class="btn btn-xs btn-success" onclick="newGroup()"><span class="glyphicon glyphicon-plus"></span> New Group</a>
+                                    </div>
+
+                                    <div id="new_user_button" style="">
+                                        <a href="{% url 'geoedge:new_user' %}" id="add_user" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> New User</a>
+                                    </div>
+
+                                    <div id="new_group_member_button" style="display:none;">
+                                        <a id="add_group_member" class="btn btn-xs btn-success" onclick="newMemner()"><span class="glyphicon glyphicon-plus"></span>Add Member</a>
+                                    </div>
+
+                                    <div id="new_group_map_button" style="display:none; float: left; padding-right: 10px;">
+                                        <a href="/map/group/{{ group.pk }}" id="add_group_map" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> New Map</a>
+                                    </div>
+
+                                    <div id="add_group_map_button" style="display:none; float: left;">
+                                        <a id="add_group_map_from_profile" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> Add Map from Profile</a>
+                                    </div>
+
+                                    <div id="add_group_layer_button" style="display:none; float: left;">
+                                        <a id="add_group_layer_from_profile" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> Add Layer from Profile</a>
+                                    </div>
+
+                                </div>
+                        </div>
+
+                        <div id="page_table"></div>
+                        <!--<table id="my_map" style="width:99%;min-height:150px;position:relative;left:400px;"  title="Map Manager" singleSelect="true" idField="itemid" fitColumns="true"  rownumbers="true" pagination="true">-->
+                        <!--</table>-->
+
+                    </div>
+                </div>
+
+            </section>
+
+         </div>
+
+
+         <div id="group_profile_section" style="display:none;">
+             <section class="panel panel-default">
+
+                 <form id="group_profile_form" class="form-horizontal" style="margin-top:20px;padding:5px;" method="post" role="form" style="width:70%;" enctype="multipart/form-data" action="" >
+                    <fieldset>
+
+                        <legend>&nbsp;&nbsp;Group Manager</legend>
+
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                <span style="margin-left:28%;color:red;margin-bottom:15px;" id="error_msg"></span>
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="e_fname">Group Name</label>
+                            <div class="col-md-5">
+                                <input id="e_group_name" name="group_name" type="text" placeholder="" class="form-control input-md" value="{{ group.group_name }}">
+                                <span class="valid">Field is required.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="textarea">Description</label>
+                            <div class="col-md-5">
+                                <textarea class="form-control" rows="6" style="width:100%;" id="e_desc" name="e_desc">{{ group.group_descri }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                          <div class="form-group">
+                                <div class="input-group" style="display:block;">
+                                    <label class="col-md-4 control-label" for="textinput">Profile Image</label>
+                                    <div class="col-md-6">
+                                        <span class="input-group-btn">
+                                            <span class="btn btn-primary btn-file">
+                                                Browse&hellip; <input type="file" name="e_photo" accept="image/*" id="filebox">
+                                            </span>
+                                             <input type="text" class="form-control" id="e_photo_filetext" readonly style="">
+                                        </span>
+                                    </div>
+                                </div>
+                          </div>
+
+
+                        <!--<div class="form-group">-->
+                            <!--<div class="input-group" style="display:block;">-->
+                                <!--<label class="col-md-4 control-label" for="textinput">Logo</label>-->
+                                <!--<div class="col-md-6">-->
+                                    <!--<span class="input-group-btn">-->
+                                        <!--<span class="btn btn-primary btn-file">-->
+                                            <!--Browse&hellip; <input type="file" name="e_logo" accept="image/*" id="filebox" multiple>-->
+                                        <!--</span>-->
+                                        <!--<input type="text" class="form-control" id="logo_filetext" readonly style="">-->
+                                    <!--</span>-->
+                                <!--</div>-->
+		                    <!--</div>-->
+                        <!--</div>-->
+
+
+                        <div class="form-group">
+                          <label class="col-md-4 control-label" for="button1id"></label>
+                          <div class="col-md-8">
+
+                          {% if accessAllow == True %}
+                                <button id="group_profile_button" name="button1id" class="btn btn-success" type="button">Save</button>
+                                <button id="group_profile_cancel" name="button2id" class="btn btn-warning">Cancel</button>
+                          {% else %}
+                                <button id="group_profile_button" name="button1id" class="btn btn-success" type="button" disabled>Save</button>
+                                <button id="group_profile_cancel" name="button2id" class="btn btn-warning" disabled>Cancel</button>
+                          {% endif %}
+
+
+                          </div>
+                        </div>
+
+                    </fieldset>
+                </form>
+
+             </section>
+         </div>
+
+
+         </div>
+     </div>
+ </div>
+
+ <div id="layerinfo">
+ </div>
+ <br><br><br><br>
+
+
+<!--Dialog to Create a new group -->
+<div id="dlg_group" class="easyui-dialog" title="New Group" style="width:400px;height:280px;padding:10px 20px" closed="true" buttons="#dlg-buttons">
+
+    <center><h3>Group Information</h3>
+        <small><span id="group_error_msg" style="color:red; margin-top:10px; padding:10px;"></span></small>
+    </center>
+
+    <form id="fm_group" class="form-horizontal" method="post" novalidate>
+
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Name<span style="color:red;">*</span></label>
+            <div class="col-md-8">
+                <input id="group_name" name="group_name" type="text" style="" class="form-control input-md" required="true">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="Description" style="margin-top:-10px;">Description</label>
+            <div class="col-md-8">
+                <input id="group_descri" name="group_descri" type="textarea" style="" class="form-control input-md">
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div id="dlg-buttons">
+    <a href="javascript:void(0)" class="c6 btn" iconCls="icon-ok" onclick="saveGroup()" style="width:90px">Save</a>
+    <a href="javascript:void(0)" class="btn btn-warning" iconCls="icon-cancel" onclick="javascript:$('#dlg_group').dialog('close')" style="width:90px">Cancel</a>
+</div>
+
+<!-- /Dialog to Create a new group -->
+
+
+<!--Dialog to Create a new member -->
+<div id="dlg_member" class="easyui-dialog" title="New Group" style="width:400px;height:280px;padding:10px 20px" closed="true" buttons="#dlgm-buttons">
+
+    <center><h3>Add Member</h3>
+        <small><span id="member_error_msg" style="color:red; margin-top:10px; padding:10px;"></span></small>
+    </center>
+
+    <form id="fm_member" class="form-horizontal" method="post" novalidate>
+        <input type="hidden" id="group_id_hidden" name="group_id" value="{{ group.pk }}">
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="member_list" style="margin-top:-10px;">Users</label>
+            <div class="col-md-8">
+                <select id="member_list" name="add_member" style="" class="form-control input-md">
+
+                </select>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div id="dlgm-buttons">
+    <a href="javascript:void(0)" class="c6 btn" iconCls="icon-ok" onclick="saveMember()" style="width:90px">Add</a>
+    <a href="javascript:void(0)" class="btn btn-warning" iconCls="icon-cancel" onclick="javascript:$('#dlg_member').dialog('close')" style="width:90px">Cancel</a>
+</div>
+
+<!-- /Dialog to Create a new member -->
+
+<script>
+    var access = "{{ accessAllow }}";
+    user_access(access);
+</script>
+
+
+{% endblock %}

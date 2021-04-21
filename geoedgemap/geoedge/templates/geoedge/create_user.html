@@ -1,0 +1,83 @@
+{% extends 'base_login.html' %}
+{% block content %}
+
+<style>
+  .btn-primary {height:40px;}
+  .btn-lg {padding:0px;}
+</style>
+
+<div id="wrap">
+    <div class="container" >
+	    <div class="row">
+            <div class="col-md-12">
+                <!--<span style="float:right;margin-right:15%;margin-top:5px;">  Already Have an Account? -<a href="login.php"> Sign In </a></span>-->
+
+                <form id="register_form" accept-charset="utf-8" class="form" method="post" role="form" style="width:70%;" enctype="multipart/form-data" action="{% url 'geoedge:new_user' %}">
+                {% csrf_token %}
+
+                  <legend>Create User</legend>
+
+                    {% if error_message %}
+                        <p class="bg-danger p-d ml-b">{{ error_message }}</p>
+                    {% endif %}
+
+                    {% if success_message %}
+                        <p class="bg-success p-d ml-b">{{ success_message }}</p>
+                    {% endif %}
+
+                        <div class="row">
+                            <div class="col-xs-6 col-md-6">
+                                <!--<input type="text" id="reg_firstname" name="firstname" value="" class="form-control input-lg" placeholder="First Name"/>-->
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-xs-6 col-md-6">
+                                <!--<input type="text" id="reg_lastname" name="lastname" value="" class="form-control input-lg" placeholder="Last Name"/>-->
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-6 col-md-6">
+                                <!--<input type="text" id="reg_username" name="username" value="" class="form-control input-lg" placeholder="Username"/>-->
+                                {{ form.username }}
+                            </div>
+                            <div class="col-xs-6 col-md-6">
+                                <!--<input type="text" id="reg_email" name="email" value="" class="form-control input-lg" placeholder="Your Email"/>-->
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-6 col-md-6">
+                                <!--<input type="password" id="reg_password" name="password" value="" class="form-control input-lg" placeholder="Password"  />-->
+                                {{ form.password }}
+                            </div>
+                            <div class="col-xs-6 col-md-6">
+                                <!--<input type="password" id="reg_confirmpassword" value="" class="form-control input-lg" placeholder="Confirm Password"  />-->
+                                {{ form.password_repeat }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input name="photo" type="file" accept="image/*" class="filestyle" data-buttonName="btn-primary" style="height:40px;" />
+                            </div>
+
+                            <div class="col-md-12">
+                                <textarea class="form-control" id="reg_description" name="description" placeholder="Description" style="height:150px;"></textarea>
+                            </div>
+                        </div>
+
+
+                        <p id="res_error_msg" style="color:#DF0000; font-size: 15px; font-weight: bold;"></p>
+                        <!--<span class="help-block text-warning">New username is the full email address you used to create new account.</span>-->
+                        <span class="help-block">By clicking Create account, you agree to our Terms and that you have read our Data Use Policy.</span><br>
+
+                        <button id="register" class="btn btn-lg btn-primary btn-block">Create account</button><br>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+{% endblock %}

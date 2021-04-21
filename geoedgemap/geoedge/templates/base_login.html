@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>GeoEDGE Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+
+    <link rel="shortcut icon" href="{% static 'img/fav.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}" media="all" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/stylelogin.css' %}"  media="all" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reg.css' %}" />
+
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-filestyle.min.js' %}"></script>
+
+    <!--fonts-->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fonts.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fonts2.css' %}"/>
+    <!--/fonts-->
+
+</head>
+<body style="overflow-x:hidden;">
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

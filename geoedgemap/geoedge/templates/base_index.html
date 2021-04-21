@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>GeoEDGE Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+
+    <link rel="shortcut icon" href="{% static 'img/fav.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap1.css' %}" media="all" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/simple-line-icons.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/font.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/app.css' %}" />
+
+    <!-- datagrid styling -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/themes/bootstrap/easyui.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/themes/icon.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/themes/color.css' %}" />
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/legend.css' %}" />
+
+    <!-- class /cat -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/geostats.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/leaflet.css' %}">
+
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <script src="{% static 'js/jquery-ui.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/underscore.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'js/leaflet/leaflet.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/leaflet/leaflet-providers.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/leaflet/KML.js' %}"></script>
+
+    <!-- Layer styling, classification, categorization -->
+    <script type="text/javascript" src="{% static 'js/classification.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/categorization.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/layer-style.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bubble.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/geostats.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/chroma.min.js' %}"></script>
+
+    <!-- promise -->
+	<script type="text/javascript" src="{% static 'js/jQuery.doWhen.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'js/moment.js' %}"></script>
+
+
+    <script type="text/javascript" src="{% static 'js/profile.js' %}"></script>
+
+    <!-- datagrid dependencies -->
+    <script type="text/javascript" src="{% static 'js/jquery.easyui.min.js' %}"></script>
+
+    <!-- Charts -->
+    <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.autocomplete.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'js/legend.js' %}"></script>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/profile.js' %}"></script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+
+        a {cursor:pointer;}
+
+        .navbar-right a {width:100%;padding:1px;}
+        .navbar .nav > li > a, .navbar .dropdown-menu a {margin-top:0px;}
+
+        #map .leaflet-right{
+		    display:none;
+	    }
+    </style>
+</head>
+<body style="width:100% !important;overflow:hidden;background:transparent;" onload='init()'>
+
+<div id="preloader">
+  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:100px;margin-left:50px;"></div>
+</div>
+
+{% block content %}
+{% endblock %}
+
+</body>
+
+<script type="text/javascript">
+
+var groupID = '';
+{% if group.pk %}
+    groupID = {{ group.pk }};
+{% endif %}
+
+	jQuery(window).load(function() {
+
+	    /* Map Count Appear */
+
+	    map_count_fun(groupID);
+
+	    /* /Map Count Appear */
+
+		jQuery("#status").delay(1000).fadeOut();
+		jQuery("#preloader").delay(1000).fadeOut("slow");
+	})
+</script>
+
+</html>

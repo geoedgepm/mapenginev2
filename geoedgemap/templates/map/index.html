@@ -1,0 +1,1967 @@
+{% extends "map/map_layout.html" %}
+{% load static %}
+
+
+{% block css_link %}
+	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.fileupload.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/colpick.css' %}">
+<!-- [START] - Select Input with Image -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/chosen.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/ImageSelect.css' %}">
+
+	<link rel="stylesheet" type="text/css" href="{% static 'css/customSelect.jquery.css' %}">
+<!-- [END] - Select Input with Image -->
+{% endblock %}
+
+{% block javascript_link %}
+    <script src="{% static 'js/jquery.ui.widget.js' %}"></script>
+  	<script src="{% static 'js/jquery.iframe-transport.js' %}"></script>
+  	<script src="{% static 'js/jquery.fileupload.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/colpick.js' %}"></script>
+<!-- [START] - Select Input with Image -->
+	<script src="{% static 'js/chosen.jquery.js' %}"></script>
+	<script src="{% static 'js/ImageSelect.jquery.js' %}"></script>
+
+	<script src="{% static 'js/customSelect.jquery.js' %}"></script>
+	<script src="{% static 'js/customSelect2.jquery.js' %}"></script>
+<!-- [END] - Select Input with Image -->
+{% endblock %}
+
+{% block content %}
+
+<style leaflet-browser-print-content>
+	.grid-print-container { // grid holder that holds all content (map and any other content)
+		grid-template: auto 1fr auto / 1fr;
+		background-color: orange;
+	}
+	.grid-map-print { // map container itself
+		grid-row: 2;
+	}
+	.titlePrint { // Dynamic title styling
+		grid-row: 1;
+		justify-self: center;
+		color: white;
+	}
+	.sub-content { // Dynamic sub content styling
+		grid-row: 5;
+		padding-left: 10px;
+	}
+</style>
+
+<!-- Print -->
+<!--<h2 class="titlePrint" leaflet-browser-print-content>Print</h2>-->
+<!-- /Print -->
+
+<div id="map_area">
+	<div id="map"></div>
+</div>
+
+
+
+<!-- Print -->
+
+<style>
+	#map_print {
+		width:800px!important;
+		height:400px!important;
+		background-color: #a1d3df;
+		position:fixed;
+		top:10000px;
+	}
+
+
+	@media screen{
+		#print_content {
+			display:none;
+		}
+	}
+
+
+	@media print
+	{
+		#map_print, .w-switcher {
+			display: none;
+		}
+	}
+</style>
+
+<div id="map_print_area" class="print_page">
+
+	<div id="map_print"></div>
+
+</div>
+
+<!-- /Print -->
+
+
+
+<!-- [START] - New Uploader+layers  -->
+
+<style>
+
+	.form-control {height:30px;border-radius:5px;}
+
+	label, .control-label, .help-block, .checkbox, .radio {font-size:13px;}
+
+	.dual-list .list-group {
+		margin-top: 8px;
+	}
+
+	.list-left li, .list-right li {
+     	cursor: pointer;
+	}
+
+	.list-arrows {
+		padding-top: 100px;
+	}
+
+	.list-arrows button {
+		margin-bottom: 20px;
+	}
+
+	.modal .close {color:red;}
+
+	#swith1 .list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+		color:#000;
+		background-color:#fff;
+		border-color:#fff;
+		border:1px solid #dddddd
+	}
+
+	div.bhoechie-tab-menu div.list-group>a.active:after {
+		border-left:10px solid #088FBC;
+	}
+
+	.panel-title {font-size:15px;}
+
+
+	.file-wrapper{
+		width:80%;
+		margin-bottom: 3px;
+		clear: both;
+	}
+	.file-row-text{
+		background-color: #ccff99;
+		margin-bottom: 3px;
+		clear: both;
+	}
+
+	.file-row-text-no{
+		background-color: #ffe6e6;
+		margin-bottom: 3px;
+		clear: both;
+	}
+
+	.uploading_file_icon{
+		padding: 5px;
+	}
+
+	.uploading_file_text{
+		text-align: left;
+		padding-left: 10px;
+	}
+
+	.uploading_stauts{
+		float: right;
+		padding: 10px
+	}
+
+	.property_field_remove{
+		padding-top : 8px;
+	}
+
+
+
+	/* Layer Styling */
+	.color-box {
+		float:right;
+		width:60px;
+		height:20px;
+		margin:0px;
+		border: 1px solid #8c8c8c;
+        z-index:100000000000;
+	}
+
+	a {cursor:pointer;}
+
+
+	/* Select Downlist with Image*/
+
+	#jqcs_s_demo, #jqcs2_s_demo{
+		height:35px;
+		margin-top:20px;
+		}
+	#jqcs_o_demo .jqcs_option, #jqcs_s_demo .jqcs_option, #jqcs2_o_demo .jqcs_option, #jqcs2_s_demo .jqcs_option{
+		background-repeat:no-repeat;
+		/*background-size:23px 17px;*/
+		background-position:5px center;
+		padding: 2.5px 10px 2.5px 35px;
+	}
+
+	.jqcs_value{
+		width:100%;
+		/*padding: 5px 20px; !important*/
+
+	}
+
+	/*Legend*/
+
+	.legend-title{
+		margin-left: 6px;
+		clear:both;
+	}
+	.legend_row{
+		padding-left:3px;
+		margin-top:3px;
+		clear:both;
+	}
+
+	.legend_text{
+		margin-left: 10px;!important
+	}
+
+</style>
+
+<style>
+.stepwizard-step p {
+	margin-top: 10px;
+}
+.stepwizard-row {
+    display: table-row;
+}
+.stepwizard {
+    display: table;
+    width: 100%;
+    position: relative;
+}
+.stepwizard-step button[disabled] {
+    opacity: 1 !important;
+    filter: alpha(opacity=100) !important;
+}
+.stepwizard-row:before {
+    top: 14px;
+    bottom: 0;
+    position: absolute;
+    content: " ";
+    width: 100%;
+    height: 1px;
+    background-color: #ccc;
+    z-order: 0;
+}
+.stepwizard-step {
+    display: table-cell;
+    text-align: center;
+    position: relative;
+}
+.btn-circle {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 12px;
+    line-height: 1.428571429;
+    border-radius: 15px;
+}
+</style>
+
+<!-- [START] - New Uploader+layers  & Searching Layers Modal -->
+
+<div style="" class="modal fade" id="modal-container-87694" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:50px;">
+
+	<div class="modal-dialog">
+		<div class="modal-content">
+
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+
+        		<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+
+						<ul class="nav nav-tabs lo">
+							<li class="active"><a data-toggle="tab" href="#tab1primary">Upload Layer</a>
+							</li>
+							<li><a data-toggle="tab" href="#tab2primary" id="search_layer_tab">Search Layer</a>
+							</li>
+						</ul>
+
+					</div>
+
+            		<div class="panel-body lo">
+
+
+                		<div class="tab-content">
+
+						<!-- Uploading Layers Panel -->
+                    		<div class="tab-pane fade in active" id="tab1primary">
+                      			<div id="ed" style="margin-right:40px;">
+
+									<div class="scrollable" id="chatlist2" style="max-height:400px; overflow-y:auto;overflow-x:hidden; padding:0px;">
+
+										<div>
+										<small><span style="color:red" id="layer_error"></span></small>
+										</div>
+
+					   					<div id="layer_form" class="form-horizontal" style="width:100%;margin-top:-0px;">
+											<fieldset>
+
+												<div class="form-group">
+												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Layer/Legend Name<span style="color:red;">*</span></label>
+											  		<div class="col-md-9">
+												  		<input id="layer_name" name="layer_name" type="text" placeholder="Title" style="" class="form-control input-md" required="">
+												  	</div>
+												</div>
+
+
+												<div class="form-group">
+												 	<label class="col-md-3 control-label" for="">Layer Type</label>
+													<label class="radio-inline" style="margin-left:15px;">
+													  	<input type="radio" name="layer_status" id="layer_private" value="private" checked> Private
+													</label>
+													<label class="radio-inline" >
+													  	<input type="radio" name="layer_status" id="layer_public" value="public"> Public
+													</label>
+											  	</div>
+
+												<div class="form-group">
+												  <label class="col-md-3 control-label" for="layer_descri">Description</label>
+												  <div class="col-md-9">
+												    <textarea class="form-control" id="layer_descri" name="layer_descri" style="height:70px;"></textarea>
+												  </div>
+												</div>
+
+												<center>
+													<div class="form-group">
+														<div class="col-md-12">
+															<button id="layer_submit" class="btn btn-success">Submit</button>
+														</div>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+
+										<div id="layer_upload_form" style="display:none; max-height:400px;">
+											<div class="form-horizontal" style="margin-top:-20px;width:auto">
+
+												<input type="hidden" id="layer_id" value="">
+
+												<div class="form-group">
+													<div class="col-sm-10" >
+														<p id="file-list" class="form-control-static" style="margin-top:10px;margin-left:25%;" ></p>
+													</div>
+											   	</div>
+
+												<div id="upload" class="form-group">
+													<div id="drop">
+														Drop Here<br>or<br>
+														<br>
+														<button id="upload_browse" type="button" class="btn btn-primary">Browse Files</button>
+														<input type="file" name="files[]" multiple >
+													</div>
+												</div>
+
+												<center>
+													<div id="progress" class="progress" style="display:none;">
+														<div class="progress-bar progress-bar-success"></div>
+													</div>
+												</center>
+
+												<div class="form-group">
+													<div class="col-md-12">
+														<center>
+															<div id="error_file_text" class="alert alert-danger" style="display:none;">
+															</div>
+														</center>
+													</div>
+												</div>
+
+												<div class="form-group">
+													<div class="col-md-12">
+														<center>
+															<button style="display:none;" id="upload_finals" type="button" class="btn btn-info col-md-offset-2" disabled>Upload</button>
+														</center>
+													</div>
+												</div>
+
+												<!-- The container for the uploaded files -->
+												<div class="form-group">
+													<div class="col-md-12">
+														<div id="files_list"  style="width:100%; clear:both;">
+														</div>
+													</div>
+												</div>
+												<!-- /The container for the uploaded files -->
+
+											</div>
+
+										</div>
+
+									</div>
+   								</div>
+							</div>
+
+						<!-- /Uploading Layers Panel -->
+
+						<!--Searching Layers Panel -->
+                    		<div class="tab-pane fade" id="tab2primary">
+
+                      			<div id="wrap1">
+
+									<div id="panel" style="overflow:hidden;">
+
+    									<div id="content_panel">
+
+											<div class="well" style="border:1ps solid;position:relative;padding:3px;">
+
+												<div class="input-group" id="other">
+													<input type="text" class="form-control" style="height:30px;" id="layers_searching" placeholder="Search...">
+													<span class="input-group-btn">
+														<button class="btn btn-success" id="layers_search" style="padding: 3.5px" type="button"><i class="glyphicon glyphicon-search"></i></button>
+													</span>
+												</div>
+
+
+												<div class="form-group" style="margin-top:5px;">
+													<div class="rdobtn" id="rdoBankrupt">
+														<label class="radio-inline">
+														{% if gid %}
+															<input type="radio" name="search_layers" checked id="search_group_layers" onclick="loadAllLayers('group')" value="group"><span id="group_layer_text"> Group Layers</span>
+														{% else %}
+															<input type="radio" name="search_layers" checked id="search_user_layers" onclick="loadAllLayers('user')" value="user"><span id="user_layer_text"> User Layers</span>
+														{% endif %}
+
+														</label>
+														<label class="radio-inline">
+														{% if gid %}
+															<input type="radio" name="search_layers" id="search_public_group_layers" onclick="loadAllLayers('public_group')" value="public_group"> Public Layers
+														{% else %}
+															<input type="radio" name="search_layers" id="search_public_layers" onclick="loadAllLayers('public')" value="public"> Public Layers
+														{% endif %}
+														</label>
+														<label class="radio-inline">
+															{% if gid %}
+																<input type="radio" name="search_layers" id="search_all_group_layers" onclick="loadAllLayers('all_group')" value="all_group"> All Layers
+															{% else %}
+																<input type="radio" name="search_layers" id="search_all_layers" onclick="loadAllLayers('all')" value="all"> All Layers
+															{% endif %}
+
+														</label>
+													</div>
+												</div>
+
+
+	 											<button class="btn btn-sm btn-info" onclick="allSelectedLayers()" style="float:right;margin-top:-35px;margin-right:10px;" type="button">Add Selected Layers</button>
+
+	 										</div>
+
+		 									<div class="scrollable" id="all_layer_list_panel" style="max-height:220px;overflow-y:auto;overflow-x:hidden;padding:5px;width:100%;">
+
+												<!-- List -->
+												<div id="all_layer_list" style="width:100%;">
+
+												</div>
+												<!-- /List -->
+
+            								</div>
+
+     									</div>
+
+									</div>
+
+								</div>
+                    		</div>
+						<!-- /Searching Layers Panel -->
+
+						</div>
+
+                	</div>
+
+            	</div>
+
+        	</div>
+
+		</div>
+	</div>
+</div>
+
+<!-- [END] - New Uploader+layers  & Searching Layers Modal -->
+
+<!-- [START] - Save + layers  Modal -->
+
+<div class="modal fade" id="modal_container_save_as" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:50px;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+				<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+						<ul class="nav nav-tabs lo">
+							<li class="active">Save As</li>
+						</ul>
+	            	</div>
+
+					<div class="panel-body lo">
+						<div class="tab-content">
+							<div class="tab-pane fade in active">
+								<div style="margin-right:40px;">
+									<div class="scrollable" style="max-height:400px; overflow:auto;padding:0px;">
+
+										<div>
+											<small><span style="color:red" id="layer_error_save_as"></span></small>
+										</div>
+
+										<div id="layer_form_save" class="form-horizontal" style="width:100%;margin-top:-0px;">
+											<fieldset>
+
+												<div class="form-group">
+												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Layer/Legend Name<span style="color:red;">*</span></label>
+											  		<div class="col-md-9">
+												  		<input id="layer_name_save" name="layer_name" type="text" placeholder="Title" style="" class="form-control input-md" required="">
+												  	</div>
+												</div>
+
+
+												<div class="form-group">
+												 	<label class="col-md-3 control-label" for="">Layer Type</label>
+													<label class="radio-inline" style="margin-left:15px;">
+													  	<input type="radio" checked name="layer_status" id="layer_private_save" value="private"> Private
+													</label>
+													<label class="radio-inline" >
+													  	<input type="radio" name="layer_status" id="layer_public_save" value="public"> Public
+													</label>
+											  	</div>
+
+												<div class="form-group">
+												  <label class="col-md-3 control-label" for="layer_descri">Description</label>
+												  <div class="col-md-9">
+												    <textarea class="form-control" id="layer_descri_save" name="layer_descri" style="height:70px;"></textarea>
+												  </div>
+												</div>
+
+												<center>
+													<div class="form-group">
+														<div class="col-md-12">
+															<input type="hidden" name="save_type" id="save_type" value="">
+															<input type="hidden" name="lastSavedId" id="last_saved_id" value="">
+															<button id="layer_submit_save" class="btn btn-success">Submit</button>
+														</div>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [END] - Save + layers  Modal -->
+
+
+
+<!-- [START] - Add Layer Name for Drawn -->
+
+<div class="modal fade" id="modal_container_add_layer_name" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:100px; z-index:100000000000001;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+				<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>-->
+						<ul class="nav nav-tabs lo">
+							<li class="active">Add New Layer</li>
+						</ul>
+	            	</div>
+
+					<div class="panel-body lo">
+						<div class="tab-content">
+							<div class="tab-pane fade in active">
+								<div style="margin-right:40px;">
+									<div style="width:100%">
+
+
+										<div id="layer_form_add_layerName" class="form-horizontal" style="width:100%;margin-top:-0px;">
+											<fieldset>
+
+												<div class="form-group">
+												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-5px; padding-left:30px;">Layer Name</label>
+											  		<div class="col-md-8">
+												  		<input id="layer_name_add" name="layer_name" type="text" placeholder="Untitled Drawn" style="" class="form-control input-md" required="">
+												  	</div>
+												</div>
+
+												<center>
+													<div class="form-group">
+														<div class="col-md-12">
+															<button id="add_layer_name_submit" class="btn btn-success" onclick="add_layer_name()">Add</button>
+														</div>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [END] - Add Layer Name for Drawn -->
+
+
+
+<!-- [START] - Share  Modal -->
+
+<div style="" class="modal fade" id="modal_container_share" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:100px;">
+
+	<div class="modal-dialog">
+		<div class="modal-content">
+
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+
+        		<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+
+						<ul class="nav nav-tabs lo">
+							<li class="active"><a data-toggle="tab" href="#tab1share">Share by URL</a>
+							</li>
+							<li><a data-toggle="tab" href="#tab2share">Add to your Page</a>
+							</li>
+						</ul>
+
+					</div>
+
+            		<div class="panel-body lo">
+
+
+                		<div class="tab-content">
+
+						<!-- Share by URL -->
+                    		<div class="tab-pane fade in active" id="tab1share">
+                      			<div id="tabshare1" style="margin-right:40px;">
+
+									<div class="scrollable" style="max-height:400px; overflow:auto;padding:0px;">
+
+					   					<div id="share_form" class="form-horizontal" style="width:100%;margin-top:-0px; padding:30px;">
+											<fieldset>
+
+												<center>
+													<div id="share_url">
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+   								</div>
+							</div>
+
+						<!-- /Share by URL -->
+
+						<!--Add to your Page -->
+                    		<div class="tab-pane fade" id="tab2share">
+								<div id="tabshare2" style="margin-right:40px;">
+
+									<div class="scrollable" style="max-height:400px; overflow:auto;padding:0px;">
+
+					   					<div id="share2_form" class="form-horizontal" style="width:100%;margin-top:-0px; padding:30px;">
+											<fieldset>
+
+												<center>
+													<div id="share_url_frame">
+														<span><</span><span>iframe width="800" height="600" src="</span><span id="share_iframe_url"></span><span>" </span><span>frameborder="</span><span>0" allowfullscreen></span></span><span><</span><span>/</span><span>iframe</span><span>></span>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+   								</div>
+                    		</div>
+						<!-- /Add to your Page -->
+
+						</div>
+
+                	</div>
+
+            	</div>
+
+        	</div>
+
+		</div>
+	</div>
+</div>
+
+<!-- [START] - Share  Modal -->
+
+
+<!-- [START] - Add Property Name  Modal -->
+
+<div class="modal fade" id="modal_container_add_property" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:50px;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+				<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+						<ul class="nav nav-tabs lo">
+							<li class="active">Add Property</li>
+						</ul>
+	            	</div>
+
+					<div class="panel-body lo">
+						<div class="tab-content scrollable" style="overflow-y:auto;overflow-x:hidden; max-height:350px;">
+							<div class="row">
+								<div class="col-md-12 text-center" style="padding-bottom:10px;"><strong>Add Property</strong></div>
+								<div class="clearfix"></div>
+							</div>
+							<div class="row">
+								<div class="col-md-12">
+									<table class="table table-bordered" id="property_add_table">
+										<thead>
+										<tr>
+											<th class="text-center">Field</th>
+											<th colspan="2" class="text-center">Name</th>
+										</tr>
+										</thead>
+										<tbody id="property_add_table_body">
+											<tr>
+												<td width="48%">
+													<input name="field_name[]" type="text" class="form-control">
+												</td>
+												<td width="48%">
+													<input name="property_name[]" type="text" class="form-control">
+												</td>
+												<td width="4%">
+													<span class="glyphicon glyphicon-remove-circle property_field_remove">
+													</span>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+
+							<div class="row">
+								<center>
+									<div class="form-group">
+										<div class="col-md-12">
+											<button id="add_filed_input" class="btn btn-success" onclick="add_field_for_property()">Add Field</button>
+											<button id="layer_submit_add_property" class="btn btn-primary">Save</button>
+										</div>
+									</div>
+								</center>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [END] - Add Property Name  Modal -->
+
+<!-- [START] - Legend -->
+<div id="legend" style="position: fixed; top: 50px; right: 5px;width:15%;background-color:rgba(43, 41, 41,0.8);height:250px;z-index:10000;border-radius:5px;padding:10px;overflow:auto;color:#ffffff; display:none;">
+
+	<div class="legendhand" style="height:25px;width:100%;border-bottom:1px solid #808080;paddong:2px; cursor:move;">
+		<strong>Legend</strong>
+	</div>
+    <div id="legend_content" class="scrollable" style="overflow-y:auto;overflow-x:hidden;">
+		<div style="width:100%" id="legend_content_layer"></div>
+		<div style="width:100%" id="legend_content_analysis"></div>
+	</div>
+
+</div>
+<!-- [END] - Legend -->
+
+<!-- [START] - Snippet Vertical Tab (Right Side)  -->
+
+
+<div class="w-switcher" style="z-index:1000;margin-top:-25px;">
+
+	<div class="w-switcher-h">
+
+		<div class="w-switcher-head">
+			<span class="w-switcher-title">Choose your Style</span>
+			<div class="w-switcher-control">
+				<span class="fa fa-paint-brush" style="position:relative;top:10px;font-size:18px;"></span>
+			</div>
+		</div>
+
+		<div class="w-switcher-body">
+
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-5 col-md-5 col-sm-8 col-xs-9 bhoechie-tab-container">
+
+						<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 bhoechie-tab-menu">
+
+							<div class="list-group">
+
+								<a href="#" style="height:85px; padding:5px;" class="list-group-item active text-center" >
+									<h3 class="fa fa-map-marker"></h3><br/>Map Styles
+								</a>
+
+								<a id="colourtab" href="#" style="height:85px; padding:5px;" class="list-group-item text-center">
+									<h3 class="fa fa-paint-brush"></h3><br/>Layer Styling
+								</a>
+
+								<a id="table2" href="#" style="height:85px; padding:5px;" class="list-group-item text-center">
+									<h3 class="fa fa-info-circle"></h3><br/>Info
+								</a>
+
+								<a id="chart" href="" style="height:85px; padding:5px;" class="list-group-item text-center">
+									<h4 class="fa fa-line-chart"></h4><br/>Charts
+								</a>
+
+								<a href="" id="spa_analysis" style="height:85px; padding:5px;" class="list-group-item text-center">
+									<h4 class="fa fa-cogs"></h4><br/>Spatial Analysis
+								</a>
+
+								<a href="" id="filter_tab" style="height:85px; padding:5px;" class="list-group-item text-center">
+									<h4 class="fa fa-filter"></h4><br/>Filter
+								</a>
+
+								<a href="" id="label_tab" style="height:85px; padding:5px;" class="list-group-item text-center">
+									<h4 class="fa fa-tags"></h4><br/>Labelling
+								</a>
+
+							</div>
+
+						</div>
+
+							<div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 bhoechie-tab" style="padding-right:0;">
+
+								<!-- Map Style section -->
+								<div class="bhoechie-tab-content active" style="color:#000000;">
+
+									<h4 style="background:#BA6AEB;padding:3px;color:#ffffff;">Map Styles</h4>
+									<p><small>Please select the styles you like.<br></small></p>
+
+									<div class="col-md-12 scrollable" style="overflow-y:auto;overflow-x:hidden; max-height:500px;">
+									<center style="padding-top:15px;padding-left:10px;border-radius:10px;">
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('googleTerrain')" class="thumb">
+													<img class="mCS_img_loaded" src="{% static 'img/googleTerrain.png' %}" style="width:100%;" alt="Google Terrain">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('googleHybrid')" class="thumb">
+													<img src="{% static 'img/googleHybrid.png' %}" style="width:100%;" class="mCS_img_loaded" alt="Google Hybrid">
+												</a>
+											</div>
+										</div>
+
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('osm_german_style')" class="thumb">
+													<img src="{% static 'img/osm_german_style.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('osm_BlackAndWhite')" class="thumb">
+													<img src="{% static 'img/osm_BlackAndWhite.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('osm_hot')" class="thumb">
+													<img src="{% static 'img/osm_hot.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Hydda_full')" class="thumb">
+													<img src="{% static 'img/Hydda_full.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Stamen_toner')" class="thumb">
+													<img src="{% static 'img/Stamen_toner.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Stamen_terrain')" class="thumb">
+													<img src="{% static 'img/Stamen_terrain.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Stamen_watercolor')" class="thumb">
+													<img src="{% static 'img/Stamen_watercolor.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_worldStreetMap')" class="thumb">
+													<img src="{% static 'img/Esri_worldStreetMap.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_DeLorme')" class="thumb">
+													<img src="{% static 'img/Esri_DeLorme.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_WorldTopoMap')" class="thumb">
+													<img src="{% static 'img/Esri_WorldTopoMap.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_worldImagery')" class="thumb">
+													<img src="{% static 'img/Esri_worldImagery.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_WorldTerrain')" class="thumb">
+													<img src="{% static 'img/Esri_WorldTerrain.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_WorldShadedRelief')" class="thumb">
+													<img src="{% static 'img/Esri_WorldShadedRelief.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_WorldPhysical')" class="thumb">
+													<img src="{% static 'img/Esri_WorldPhysical.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_OceanBasemap')" class="thumb">
+													<img src="{% static 'img/Esri_OceanBasemap.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_NatGeoWorldMap')" class="thumb">
+													<img src="{% static 'img/Esri_NatGeoWorldMap.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('Esri_WorldGrayCanvas')" class="thumb">
+													<img src="{% static 'img/Esri_WorldGrayCanvas.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('GeoportailFrance')" class="thumb">
+													<img src="{% static 'img/GeoportailFrance.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+										<div class="row clearfix">
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('GeoportailFrance_orthos')" class="thumb">
+													<img src="{% static 'img/GeoportailFrance_orthos.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+											<div class="col-md-6 column">
+												<a onclick="changeBaseLayer('GeoportailFrance_ignMaps')" class="thumb">
+													<img src="{% static 'img/GeoportailFrance_ignMaps.png' %}" style="width:100%;" class="mCS_img_loaded">
+												</a>
+											</div>
+
+										</div>
+
+									</center>
+									</div>
+
+								</div>
+								<!-- /Map Style section -->
+
+								<!-- Layer Styling -->
+
+								<div class="bhoechie-tab-content">
+
+			  						<h4 style="background:#BA6AEB;padding:3px;color:#ffffff;">Layer Styles </h4>
+			   						<p style="color:#000;">
+		   							<small>   Please adjest the styles you like.</small></p>
+
+			 						<div class="form-group" style="margin-top:-5px;">
+										<label class="col-md-4" for="layer_options" style="margin-top:5px;font-size:13px;color:#000;float:left;">Layer Style</label>
+										<small><span id="layergroup_error" style="color:red"></span></small>
+										<div class="col-md-8">
+											<select id="layer_group_options" class="form-control" name="layer_group_options" style="height:25px;padding:0;">
+											</select>
+
+										</div>
+									</div>
+
+									<div class="clearfix"></div>
+
+									<div class="panel-group" id="panel-64344">
+
+										<div class="panel panel-info" >
+
+											<div class="panel-heading">
+												 <a class="panel-title" data-toggle="collapse" data-parent="#panel-64344" id="simple" href="#panel-element-10832">Simple</a>
+											</div>
+
+											<div id="panel-element-10832" class="panel-collapse collapse">
+												<div class="panel-body">
+													<div class="col-md-10 column" style="padding-top:0px;">
+
+														<div class="col-md-12 column" style="margin-top:0px;color:#000;font-size:12px;">
+															<span><input id="no_fill_col" type="checkbox"> Remove Fill Color</span>
+														</div>
+
+														<div id="fill_color_cntr" class="col-md-12 column" style="margin-top:10px;color:#000;font-size:12px;padding:0;">
+															Fill Color<span id="fill_color" class="color-box" style="background-color: #ff3385;"></span>
+
+															<div id="fill_color_fillOpacity_div" class="col-md-10 column" style="margin-top:10px;color:#000;font-size:12px;padding:0;">
+																<span style="color:#000;font-size:12px;">Fill Opacity :&nbsp;&nbsp;<span id="fill_color_fillOpacity_text">40</span>%</span>
+																<div id="fill_color_fillOpacity" style="width:100%; margin-top:5px;"></div>
+															</div>
+
+														</div>
+
+														<div class="clearfix"></div>
+
+														<div class="col-md-12 column" style="margin-top:25px;color:#000;font-size:12px; ">
+															<span><input id="no_line_col" type="checkbox"> Remove Border</span>
+														</div>
+
+														<div id="border_color_div" class="col-md-12 column" style="margin-top:5px;color:#000;font-size:12px;padding:0;">
+															Border Color <span id="border_color" class="color-box" style="background-color: #ff3385;"></span>
+
+															<div id="border_color_Opacity_div" class="col-md-10 column" style="margin-top:10px;color:#000;font-size:12px;padding:0;">
+																<span style="color:#000;font-size:12px;">Opacity :&nbsp;&nbsp;<span id="border_color_Opacity_text">100</span>%</span>
+																<div id="border_color_Opacity" style="width:100%; margin-top:5px;"></div>
+															</div>
+
+														</div>
+
+														<div class="col-md-12 column" style="margin-top:10px; padding:0;">
+
+															<span style="color:#000;font-size:12px;">Border Style &nbsp;&nbsp;</span>
+
+															<select id="layer_line_type" class="layer_line_type">
+																<option value="Line" data-img-src="{% static 'img/line2.png' %}" selected>Line</option>
+																<option value="Dashed_1" data-img-src="{% static 'img/line1.png' %}">Dashed</option>
+															</select>
+
+														</div>
+
+														<div class="col-md-12 column" style="margin-top:10px; padding:0;">
+
+															<div id="line_weight_div" class="col-md-10 column" style="margin-top:15px;color:#000;font-size:12px;padding:0;">
+																<span style="color:#000;font-size:12px;">Weight :&nbsp;&nbsp;<span id="line_weight_text">2</span></span>
+																<div id="line_weight" style="width:100%; margin-top:5px;"></div>
+															</div>
+
+														</div>
+
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<div class="panel panel-info">
+
+											<div class="panel-heading">
+												 <a class="panel-title collapsed" data-toggle="collapse" data-parent="#panel-64344" id="categorized" href="#panel-element-74926">Categorized</a>
+											</div>
+
+											<div id="panel-element-74926" class="panel-collapse collapse" style="">
+												<div class="panel-body" style="overflow-x:hidden;">
+													<div id="cat" class="scrollable" style="max-height:300px;overflow-y:auto;overflow-x:hidden;">
+
+														<div class="col-md-12 column" style="padding:0;">
+															<small><span id="cat_error" style="color:red"></span></small>
+
+															<div class="form-group">
+																<div class="row clearfix">
+																	<span class="col-md-5" for="selectbasic" style="margin-top:6px;margin-left:5px;color:#000;">Column</span>
+																	<div class="col-md-8">
+																		<select id="cat_attrs" name="selectbasic" class="form-control" style="height:25px;padding:2px;">
+																		  <!--<option value="1">Option one</option>
+																		  <option value="2">Option two</option>-->
+																		</select>
+																	</div>
+																</div>
+															</div>
+
+															<div style="border:0px solid green;border-radius:5px;padding:0px;z-index:10;">
+																<span class="col-md-5" style="position:relative;top:15px;margin-left:-10px;color:#000;">Fill style </span>
+																<br>
+
+																<input type="hidden" id="fill_style_categorized" value=""/>
+
+																<center style="margin-top:15px;">
+														  			<a href="#" class="btn btn-sm btn-success" onclick="chg_cat_order('asc')"><span class="glyphicon glyphicon-chevron-left"></span></a>
+																  	&nbsp;&nbsp;&nbsp;
+															  		<a href="#" class="btn btn-sm btn-success" onclick="chg_cat_order('desc')"><span class="glyphicon glyphicon-chevron-right"></span></a>
+																</center>
+
+															</div>
+
+															<div id="categorized_grid" style="width:100%;margin-left:0%;margin-right:2%;margin-top:10px;">
+															</div>
+
+															<br>
+				 										</div>
+
+			   										</div>
+												</div>
+											</div>
+
+										</div>
+
+										<div class="panel panel-info">
+
+											<div class="panel-heading">
+					 							<a id="classify" class="panel-title collapsed" data-toggle="collapse" data-parent="#panel-64344" href="#panel-element-74927">Classify</a>
+											</div>
+
+											<div id="panel-element-74927" class="panel-collapse collapse">
+												<div class="panel-body scrollable" style="max-height:250px;overflow-y:auto;overflow-x:hidden;color:#000;">
+													<div id="cla" style="">
+														<div class="col-md-12 column" style="padding:5px;overflow-x:hidden;">
+ 															<small><span id="cla_error" style="color:red"></span></small>
+
+															<div class="form-group">
+					  											<div class="row clearfix">
+																	<span class="col-md-3" for="selectbasic" style="margin-top:6px;">Column</span>
+																	<div class="col-md-9">
+																		<select id="cla_attrs" name="selectbasic" class="form-control" style="height:25px;padding:2px;">
+																		</select>
+																	</div>
+																</div>
+														   	</div>
+
+															<div class="clearfix"></div>
+
+															<div class="form-group">
+																<div class="row clearfix">
+																	<span class="col-md-3" for="selectbasic" style="margin-top:6px;">Classes</span>
+																	<div class="col-md-9">
+																		<input id="classify_num" type="number" value="5" name="classes" class="form-control" style="height:30px;padding:2px;">
+																	</div>
+																</div>
+															</div>
+
+															<div class="clearfix"></div>
+
+															<div class="form-group">
+																<div class="row clearfix">
+																	<span class="col-md-3" for="selectbasic" style="margin-top:10px;">Mode</span>
+																	<div class="col-md-9">
+																		<select id="classify_mode" name="mode" class="form-control" style="height:30px;padding:2px;margin-top:10px;">
+																	  		<option value=""> Select</option>
+																	  		<!--<option value="eqInterval">Equal Interval</option>-->
+																	  		<option value="q">Quantile</option>
+																			<option value="e">Equidistant</option>
+																			<option value="k">k-means</option>
+																	  		<!--<option value="standard_deviation">Standard Deviation</option>-->
+																	  		<!--<option value="jenks">Jenks</option>-->
+																	  		<!--<option value="arithmetic_progression">Arithmetic Progression</option>-->
+																		</select>
+																	</div>
+																</div>
+														   	</div>
+
+															<div style="border:0px solid green;border-radius:5px;padding:0px;z-index:10;">
+																<span class="col-md-5" style="position:relative;top:15px;margin-left:-10px;color:#000;">Fill style </span>
+																<br>
+
+																<input type="hidden" id="fill_style_classify" value=""/>
+
+																<center style="margin-top:15px;">
+														  			<a href="#" class="btn btn-sm btn-success" onclick="chg_cla_order('asc')"><span class="glyphicon glyphicon-chevron-left"></span></a>
+																  	&nbsp;&nbsp;&nbsp;
+															  		<a href="#" class="btn btn-sm btn-success" onclick="chg_cla_order('desc')"><span class="glyphicon glyphicon-chevron-right"></span></a>
+																</center>
+
+															</div>
+
+															<br>
+															<br>
+
+															<div id="classify_grid" style="width:100%;margin-left:0%;margin-right:2%;margin-top:10px;">
+															</div>
+
+															<br>
+
+														</div>
+													</div>
+												</div>
+											</div>
+
+										</div>
+
+
+										<div class="panel panel-info">
+
+											<div class="panel-heading">
+					 							<a id="bubble" class="panel-title collapsed" data-toggle="collapse" data-parent="#panel-64344" href="#panel-element-74928">Bubble</a>
+											</div>
+
+											<div id="panel-element-74928" class="panel-collapse collapse">
+												<div class="panel-body">
+													<div class="col-md-12 column scrollable" style="max-height:250px;overflow-y:auto;overflow-x:hidden;color:#000;">
+													<small><span id="bubble_error" style="color:red"></span></small>
+
+														<div class="form-group">
+															<div class="row clearfix">
+																<span class="col-md-3" for="selectbasic" style="margin-top:6px; color:#000;font-size:12px;">Column</span>
+																<div class="col-md-9">
+																	<select id="bubble_attrs" name="selectbasic" class="form-control" style="height:25px;padding:2px;">
+																	</select>
+																</div>
+															</div>
+														</div>
+
+														<div class="col-md-12 column" style="margin-top:0px;color:#000;font-size:12px;">
+															<span><input id="bubble_marker" type="checkbox" disabled> Hide Marker</span>
+														</div>
+
+														<div class="clearfix"></div>
+
+														<div class="col-md-12 row">
+
+															<div class="col-md-12" style="margin-top:10px; clear:both; color:#000;font-size:12px;padding:0px;">
+																<span>Bubble Color</span>
+															</div>
+
+															<div id="start_color_bubble_div" class="col-md-6 column" style="padding-left:10px; color:#000;font-size:12px;">
+																<span>Fill </span>
+																<span id="start_color_bubble" class="color-box" style="background-color: rgb(255, 51, 133);"></span>
+															</div>
+																<input type="hidden" id="start_color_bubble_value" value="#ff3385">
+
+															<div id="end_color_bubble_div" class="col-md-6 column" style="padding-left:10px; color:#000;font-size:12px;">
+																<span>Outline </span>
+																<span id="end_color_bubble" class="color-box" style="background-color: rgb(255, 255, 255);"></span>
+															</div>
+																<input type="hidden" id="end_color_bubble_value" value="#ffffff">
+
+														</div>
+
+														<div class="clearfix"></div>
+
+														<div id="radius_bubble_div" class="col-md-10 column" style="margin-top:15px;color:#000;font-size:12px;padding:0;">
+															<span style="color:#000;font-size:12px;">Radius :&nbsp;<span id="radius_bubble_text">40</span>%</span>
+															<div id="radius_bubble" style="width:100%; margin-top:5px;"></div>
+														</div>
+
+														<div class="clearfix"></div>
+
+														<div id="fill_color_fillOpacity_bubble_div" class="col-md-10 column" style="margin-top:15px;color:#000;font-size:12px;padding:0;">
+															<span style="color:#000;font-size:12px;">Bubble Opacity :&nbsp;<span id="fill_color_fillOpacity_bubble_text">40</span>%</span>
+															<div id="fill_color_fillOpacity_bubble" style="width:100%; margin-top:5px;"></div>
+														</div>
+
+														<div class="clearfix"></div>
+
+														<div id="border_color_opacity_bubble_div" class="col-md-10 column" style="margin-top:15px;color:#000;font-size:12px;padding:0;">
+															<span style="color:#000;font-size:12px;">Outline Opacity :&nbsp;<span id="border_color_opacity_bubble_text">100</span>%</span>
+															<div id="border_color_Opacity_bubble" style="width:100%; margin-top:5px;"></div>
+														</div>
+
+														<div class="clearfix"></div>
+
+														<div id="weight_bubble_div" class="col-md-10 column" style="margin-top:15px;color:#000;font-size:12px;padding:0;">
+															<span style="color:#000;font-size:12px;">Outline Weight :&nbsp;<span id="weight_bubble_text">2</span></span>
+															<div id="bubble_weight" style="width:100%; margin-top:5px;"></div>
+														</div>
+
+														<div class="clearfix"></div>
+														<br>
+
+													</div>
+												</div>
+
+											</div>
+
+										</div>
+
+									</div>
+
+								</div>
+
+								<!-- /Layer Styling -->
+
+								<!-- Info window -->
+
+								<div class="bhoechie-tab-content">
+
+									<h4 style="background:#BA6AEB;padding:3px;color:#000;">Info window </h4>
+
+									 	<div class="col-md-12 column" style="padding:0;color:#000;">
+											<small><span id="info_window_error" style="color:red"></span></small>
+
+											<div class="form-group">
+
+												<label class="col-md-3" for="layers_info_window" style="margin-top:5px;font-size:18px;">Layer</label>
+											  	<div class="col-md-6">
+													<select id="layers_info_window" class="form-control" style="height:30px;padding:0;width:107%;">
+													</select>
+											  	</div>
+
+												<div class="col-md-3">
+					   								<button id="info_window_button" class="btn btn-success nextBtn pull-right" type="button" style="padding:5px;"> &nbsp; Save &nbsp;</button>
+					  							</div>
+											</div>
+
+                      						<br>
+
+											<div class="scrollable" style="max-height:400px; overflow:auto;">
+
+					    						<div class="row">
+
+													<div class="dual-list list-left col-md-5" style="padding:3px;">
+														<div class="well0 text-right">
+
+															<ul class="list-group" id="dis_attr">
+															</ul>
+
+														</div>
+													</div>
+
+													<div class="list-arrows col-md-2 text-center" style="padding:3px;padding-top:10px;">
+														<button class="btn btn-default btn-sm move-left">
+															<span class="glyphicon glyphicon-chevron-left"></span>
+														</button>
+
+														<button class="btn btn-default btn-sm move-right">
+															<span class="glyphicon glyphicon-chevron-right"></span>
+														</button>
+													</div>
+
+													<div class="dual-list list-right col-md-5" style="padding:3px;">
+														<div class="well0">
+
+															<ul class="list-group" id="sel_attr">
+															</ul>
+
+														</div>
+													</div>
+
+												</div>
+
+												<table class="table table-bordered" id="attr_table">
+												</table>
+
+												<br>
+											</div>
+
+										</div>
+
+									</div>
+
+								<!-- /Info window -->
+
+								<!-- Chart -->
+
+								<div class="bhoechie-tab-content">
+
+									<h4 style="background:#BA6AEB;padding:3px;color:#ffffff;">Charts </h4>
+									<div class="col-md-12" style="color:#000;margin-left:-5px;"></div>
+									<br>
+
+
+									<div style="width:100%">
+
+										<div class="stepwizard">
+											<div class="stepwizard-row setup-panel">
+											  	<div class="stepwizard-step">
+													<a href="#step-1" type="button" class="btn btn-primary btn-circle">1</a>
+													<p>Step 1</p>
+											  	</div>
+											  	<div class="stepwizard-step">
+													<a href="#step-2" type="button" class="btn btn-default btn-circle" disabled="disabled">2</a>
+													<p>Step 2</p>
+											  	</div>
+											  	<div class="stepwizard-step">
+													<a href="#step-3" type="button" class="btn btn-default btn-circle" disabled="disabled">3</a>
+													<p>Step 3</p>
+											  	</div>
+											</div>
+									  	</div>
+
+										<form role="form">
+
+											<div class="row setup-content" id="step-1">
+											  	<div class="col-xs-10">
+													<div class="col-md-12">
+
+													  	<div class="form-group">
+															<label class="col-md-4 control-label">Layer/Table</label>
+															<div class="col-md-8">
+																<!--<input  maxlength="100" type="text" required="required" class="form-control"/>-->
+																<select id="layers_chart" class="form-control" required="required" style="height:25px;padding:0;">
+																</select>
+															</div>
+														</div>
+														<br><br>
+
+													  	<div class="form-group">
+															<label class="col-md-4 control-label">X-Axis</label>
+															<div class="col-md-8">
+																<select id="chart_x_axis" class="form-control" required="required" style="height:25px;padding:0;">
+																</select>
+															</div>
+													  	</div>
+														<br><br>
+
+														<div class="form-group">
+															<label class="col-md-4 control-label">Y-Axis</label>
+															<div class="col-md-8">
+																<select id="chart_y_axis" class="form-control" required="required" style="height:25px;padding:0;">
+																</select>
+															</div>
+													  	</div>
+														<br><br>
+
+														<div class="form-group">
+															<label class="col-md-4 control-label">X-Label</label>
+															<div class="col-md-8">
+																<input id="chart_x_label" maxlength="100" type="text" required="required" class="form-control"/>
+															</div>
+													  	</div>
+														<br><br>
+
+														<div class="form-group">
+															<label class="col-md-4 control-label">Y-Label</label>
+															<div class="col-md-8">
+																<input id="chart_y_label" maxlength="100" type="text" required="required" class="form-control"/>
+															</div>
+													  	</div>
+														<br><br>
+
+													  	<button class="btn btn-primary nextBtn btn-sm pull-right" type="button" >Next</button>
+
+													</div>
+												  </div>
+												</div>
+
+												<div class="row setup-content" id="step-2">
+
+												  	<div class="col-xs-10">
+														<div class="col-md-12">
+
+														<div class="form-group">
+															<label class="col-md-4 control-label">Colour</label>
+															<div class="col-md-2">
+																<span id="chart_color" class="color-box" style="background-color: #b800e6;"></span>
+																<input type="hidden" id="chart_color_hidden" value="#b800e6" />
+													  		</div>
+													  	</div>
+														<br>
+
+													  	<div class="form-group">
+															<label class="col-md-4 control-label">Bar size</label>
+														  	<div class="col-md-8" style="margin-bottom:10px;">
+																<input type="number" id="bar_size" value="10" required="required" class="form-control" />
+																<span><input id="chart_show_border" type="checkbox"><label class="control-label">Show Border</label></span>
+														  	</div>
+													  	</div>
+														<br>
+
+														<div class="form-group">
+															<label class="col-md-4 control-label">Min Value</label>
+															<div class="col-md-8">
+																<input type="number" id="chart_min_value" required="required" class="form-control"/>
+															</div>
+													  	</div>
+														<br><br><br>
+
+														<div class="form-group">
+															<label class="col-md-4 control-label">Max Value</label>
+															<div class="col-md-8">
+																<input type="number" id="chart_max_value" required="required" class="form-control"/>
+															</div>
+													  	</div>
+														<br><br>
+
+														<button class="btn btn-primary nextBtn btn-sm pull-right" id="chart_button" type="button" >Draw Chart!</button>
+													</div>
+												  </div>
+
+												</div>
+
+												<div class="row setup-content" id="step-3">
+												  	<div class="col-xs-10">
+														<div class="col-md-12">
+
+															<div id="chart_content" class="scrollable" style="overflow-y:hidden;overflow-x:auto;">
+																<canvas id="chart_map"></canvas>
+															</div>
+
+											  				<br><br>
+
+															<div class="col-md-12">
+																<button id="chart_display_button" style="margin-left:5px;" class="btn btn-primary btn-sm pull-right" type="button">Add to Map</button>
+																<button id="chart_refresh" style="margin-left:5px;" class="btn btn-primary btn-sm pull-right pull-right" type="button">Refresh</button>
+															</div>
+														</div>
+												  	</div>
+												</div>
+											  </form>
+
+
+									</div>
+
+
+
+								</div>
+
+								<!-- /Chart -->
+
+
+								<!-- Spatial Analysis -->
+
+								<div class="bhoechie-tab-content">
+									<h4 style="background:#BA6AEB;padding:3px;color:#ffffff;">Spatial Analysis </h4>
+									<div class="col-md-12 column" style="color:#000;margin-left:-5px;"></div>
+
+									<div style="color:#000;margin-left:-5px;font-size:12px;">
+										<small><span id="sp_error" style="color:red"></span></small>
+										<br><br>
+
+										<!--<form class="form-horizontal" style="text-align:left;width:100%;font-size:12px;" >-->
+										<div class="form-horizontal" style="text-align:left;width:100%;font-size:12px;" >
+
+											<div class="form-group" style="margin-top:-35px">
+											 	<label id="sp_validtn" style="color:red"></label>
+											</div>
+
+											<div class="form-group" >
+											  	<label class="col-md-4 control-label"  for="sp_analysis_type" style="margin-top:-5px;float:left;">Process</label>
+											  	<div class="col-md-8">
+													<select id="sp_analysis_type" class="form-control" style="height:30px;padding:0;width:100%;">
+														<option></option>
+												  		<option value="clipping">Clipping</option>
+												  		<option value="buffering">Buffering</option>
+													 	<option value="intersection">Intersection</option>
+													</select>
+											  	</div>
+											</div>
+
+										 	<div class="form-group">
+											  	<label class="col-md-4 control-label"  for="sp_layerGroup_source" style="margin-top:-5px;">Input Layer</label>
+											  	<div class="col-md-8">
+													<select id="sp_layerGroup_source" class="form-control" style="height:30px;padding:0;width:100%;">
+														<option></option>
+													</select>
+											  	</div>
+											</div>
+
+											<div class="form-group" id="sp_layerGroup_clip_div">
+											  	<label class="col-md-4 control-label" id="in"  for="sp_layerGroup_clip" style="margin-top:-5px;">Clipping Layer</label>
+											  	<div class="col-md-8">
+													<select id="sp_layerGroup_clip" class="form-control" style="height:30px;padding:0;width:100%;">
+												  		<option></option>
+													</select>
+											  	</div>
+											</div>
+
+											<div class="form-group" id="sp_units_value" style="display:none;">
+											  	<label class="col-md-4 control-label"  for="sp_units" style="margin-top:-5px;">Unit/Value</label>
+											  	<div class="col-md-4">
+											  		<select id="sp_units" class="form-control" style="height:30px;padding:0;width:100%;">
+														<option value="miles">Miles</option>
+												  		<option value="meters">Meters</option>
+												  		<option value="kilometers">Kilometers</option>
+													</select>
+												</div>
+												<div class="col-md-4">
+													<input type="number" id="sp_value" name="sp_value" class="form-control" value="5" style="height:30px;padding:0;width:100%;"/>
+											  	</div>
+
+											</div>
+
+											<div class="form-group">
+											  	<label class="col-md-4 control-label"  for="sp_new_layerGroup" style="margin-top:-5px;font-size:12px;">New Layer Name</label>
+											  	<div class="col-md-8">
+													<input id="sp_new_layerGroup" class="form-control" style="height:30px;padding:0;width:100%;">
+											  	</div>
+											</div>
+
+											<!--<div class="form-group">-->
+												<!--<label class="col-md-4 control-label" style="" for="">Layer Type</label>-->
+
+												<!--<label class="radio-inline " style="margin-left:15px;">-->
+													<!--<input type="radio" checked name="sp_layer_status" id="spl_status_private" value="private"> Private-->
+												<!--</label>-->
+
+												<!--<label class="radio-inline "  >-->
+													<!--<input type="radio" name="sp_layer_status" id="spl_status_public" value="public"> Public-->
+												<!--</label>-->
+											<!--</div>-->
+
+											<div class="form-group">
+												<button class="btn btn-success" id="sp_button" style="float:right;margin-right:15px;">Process Data</button>
+											</div>
+
+										</div>
+										<!--</form>-->
+
+									</div>
+
+								</div>
+
+								<!-- /Spatial Analysis -->
+
+								<!-- Filter -->
+
+								<div class="bhoechie-tab-content">
+									<h4 style="background:#BA6AEB;padding:3px;color:#ffffff;">Filter </h4>
+									<div class="col-md-12 column" style="color:#000;margin-left:-5px;"></div>
+
+									<div id="layer_filter" >
+
+										<div class="form-group">
+										  	<label class="col-md-3"  for="filter_layers" style="margin-top:5px;font-size:13px;color:#000;">Layer</label>
+										  	<div class="col-md-9">
+												<select id="filter_layers" class="form-control" style="height:30px;padding:0;width:107%;">
+												</select>
+										  	</div>
+										</div>
+
+										<br><br>
+
+										<div class="form-group">
+										  	<label class="col-md-3"  for="filter_columns" style="margin-top:5px;font-size:13px;color:#000;">Column</label>
+										  	<div class="col-md-9">
+												<select id="filter_columns" class="form-control" style="height:30px;padding:0;width:107%;">
+												</select>
+										  </div>
+										</div>
+
+										<div class="row">
+											<br>
+											<div class="col-md-11">
+												<span id="filter_error" style="color:red; padding-left:24px"></span>
+												<br>
+												<div class="scrollable" style="height:360px;overflow:auto;">
+													<center>
+														<table class="table table-bordered" width="100%" class="table" id="filter_table">
+														</table>
+													</center>
+												</div>
+											</div>
+
+										</div>
+
+										<button class="btn btn-success" id="layerFilterButton" style="margin-left:100px">Filter</button>
+
+									</div>
+
+								</div>
+
+								<!-- /Filter -->
+
+
+								<!-- Labelling -->
+
+								<div class="bhoechie-tab-content">
+									<h4 style="background:#BA6AEB;padding:3px;color:#ffffff;">Labelling </h4>
+									<div class="col-md-12 column" style="color:#000;margin-left:-5px;"></div>
+
+									<small><span id="labelling_error" style="color:red"></span></small>
+									<br><br>
+
+									<div id="layer_labelling" >
+
+										<div class="form-group">
+										  	<label class="col-md-3"  for="labelling_layers" style="margin-top:5px;font-size:13px;color:#000;">Layer</label>
+										  	<div class="col-md-9">
+												<select id="labelling_layers" class="form-control" style="height:30px;padding:0;width:107%;">
+												</select>
+										  	</div>
+										</div>
+
+										<br><br>
+
+										<div class="row">
+											<br>
+											<div class="col-md-12">
+												<span id="label_error" style="color:red; padding-left:24px"></span>
+												<br>
+												<div class="scrollable" style="height:360px;overflow:auto;">
+
+													<center>
+														<table class="table table-bordered" width="100%" class="table" id="label_table">
+														</table>
+													</center>
+
+													<br>
+
+													<div class="btn-group pull-right" role="group">
+														<button class="btn btn-success" id="label_add" type="button">Label</button>
+														<button class="btn btn-danger" id="label_remove" type="button">Remove Label</button>
+													</div>
+
+												</div>
+											</div>
+										</div>
+
+									</div>
+
+
+								</div>
+
+								<!-- /Labelling -->
+
+
+
+							</div>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+
+<!-- [END] - Snippet Vertical Tab (Right Side)  -->
+
+
+<!-- [START] - Chart Display -->
+<div id="chart_display" style="position: fixed; bottom: 50px; right: 65px; width:90%; background-color:rgba(43, 41, 41,0.6);height:520px;z-index:10000;border-radius:5px;padding:10px;overflow:auto;color:#ffffff; display:none;">
+
+	<div class="chart_display_head" style="height:25px;width:100%;border-bottom:1px solid #808080;paddong:2px; cursor:move;">
+			<strong>Chart <span id="chart_layer_name">- Country</span></strong>
+		<span id="chart_display_close" style="float:right; color:red; cursor:pointer;" ><b>X</b></span>
+	</div>
+    <div id="chart_display_content" class="scrollable" style="height:460px; overflow-y:auto;overflow-x:hidden;">
+		<center>
+			<div id="chartContent" class="chart_content" style="width:80%; background-color:rgba(255, 255, 255,0.8); margin:10px; padding:25px; border-radius:5px;">
+				<canvas id="chart_display_map"></canvas>
+			</div>
+
+			<div class="btn-group pull-right" role="group" style="margin-right:50px;">
+				<a onclick="chartPrint()" style="float:left;margin-top:40px;margin-left:40px;" class="btn btn-success"><span class="glyphicon glyphicon-print"></span> Print</a>
+			</div>
+
+		</center>
+	</div>
+
+</div>
+<!-- [END] - Chart Display -->
+
+
+<!-- [START] - Save - Map side -->
+
+<div class="modal fade" id="modal_container_save_as_map" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:50px;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+				<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+						<ul class="nav nav-tabs lo">
+							<li class="active">Save As Map</li>
+						</ul>
+	            	</div>
+
+					<div class="panel-body lo">
+						<div class="tab-content">
+							<div class="tab-pane fade in active">
+								<div>
+									<div class="scrollable" style="max-height:400px; overflow-y:auto; padding:0px;">
+
+										<div>
+											<small><span style="color:red" id="layer_error_save_as_map"></span></small>
+										</div>
+
+										<div id="layer_form_save_map" class="form-horizontal" style="width:100%;margin-top:-0px;">
+											<fieldset>
+
+												<div class="form-group">
+												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Title<span style="color:red;">*</span></label>
+											  		<div class="col-md-8">
+												  		<input id="layer_name_save_map" name="layer_name" type="text" style="" class="form-control input-md" required="">
+												  	</div>
+												</div>
+
+
+												<div class="form-group">
+												 	<label class="col-md-3 control-label" for="">Layer Type</label>
+												 	<div class="col-md-8">
+														<label class="radio-inline" style="margin-left:15px;">
+														  	<input type="radio" checked name="layer_status_map" id="layer_private_save_map" value="private"> Private
+														</label>
+														<label class="radio-inline" >
+														  	<input type="radio" name="layer_status_map" id="layer_public_save_map" value="public"> Public
+														</label>
+													</div>
+											  	</div>
+
+												<div class="form-group">
+												  <label class="col-md-3 control-label" for="layer_descri">Description</label>
+												  <div class="col-md-8">
+												    <textarea class="form-control" id="layer_descri_save_map" name="layer_descri" style="height:70px;"></textarea>
+												  </div>
+												</div>
+
+												<center>
+													<div class="form-group">
+														<div class="col-md-12">
+															<input type="hidden" name="lastSavedId" id="last_saved_id_map" value="">
+															<button id="layer_submit_save_map" class="btn btn-success" onclick="save_as_map()">Submit</button>
+														</div>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [END] - Save - Map side -->
+
+
+<script>
+
+/* Snippet Vertical Tab - Javascript (Right Side) */
+
+$(document).ready(function() {
+    $("div.bhoechie-tab-menu>div.list-group>a").click(function(e) {
+        e.preventDefault();
+        $(this).siblings('a.active').removeClass("active");
+        $(this).addClass("active");
+        var index = $(this).index();
+        $("div.bhoechie-tab>div.bhoechie-tab-content").removeClass("active");
+        $("div.bhoechie-tab>div.bhoechie-tab-content").eq(index).addClass("active");
+    });
+});
+
+/* /Snippet Vertical Tab - Javascript (Right Side)*/
+
+</script>
+
+<script type="text/javascript">
+    $(".layer_line_type").chosen({width:"80%"});
+</script>
+
+<script type="text/javascript">
+
+(function($){
+	$.customSelect({
+		identifier: 'demo',
+		selector: '#fill_style_categorized',
+		placeholder: '',
+		options: [
+			['colRang1', 'col1.png', ''],
+			['colRang2', 'col2.png', ''],
+			['colRang3', 'col3.png', ''],
+			['colRang4', 'col4.png', ''],
+			['colRang5', 'col5.png', '']
+		],
+		template: "<div class='jqcs_option' data-select-value='$0' style='height:30px; background-image:url(/static/img/$1);'>$2</div>"
+	});
+
+})(jQuery);
+
+</script>
+
+
+<script type="text/javascript">
+
+(function($){
+	$.customSelect2({
+		identifier: 'demo',
+		selector: '#fill_style_classify',
+		placeholder: '',
+		options: [
+			['colRang1', 'col1.png', ''],
+			['colRang2', 'col2.png', ''],
+			['colRang3', 'col3.png', ''],
+			['colRang4', 'col4.png', ''],
+			['colRang5', 'col5.png', '']
+		],
+		template: "<div class='jqcs_option' data-select-value='$0' style='height:30px; background-image:url(/static/img/$1);'>$2</div>"
+	});
+
+})(jQuery);
+
+
+
+</script>
+
+{% endblock %}

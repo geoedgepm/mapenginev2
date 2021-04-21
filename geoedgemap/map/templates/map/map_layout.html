@@ -1,0 +1,744 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>GeoEDGE Map Engine</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="shortcut icon" href="{% static 'img/fav.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style_adpc.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/leaflet.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-tour-standalone.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery-ui.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/mapbox-gl.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/appMap.css' %}">
+
+	{% block css_link %}
+	{% endblock %}
+
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08kjICw-tuCcRfgATXY6qOMMQxxnY-ys"  async defer></script>
+    <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/bootstrap-tour-standalone.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.js' %}"></script>
+
+	<!-- [START] - Overlay Map Layer -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-providers.js' %}"></script>
+	<!-- [END] - Overlay Map Layer -->
+
+	<!-- [START] - Overlay Map Layer - Google -->
+	<script type="text/javascript" src="{% static 'js/leaflet/Leaflet.GoogleMutant.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Google -->
+
+	<!-- [START] - Overlay Map Layer - Bing -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-bing-layer.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Bing -->
+
+	<!-- [START] - Overlay Map Layer - Mapbox -->
+	<script type="text/javascript" src="{% static 'js/leaflet/mapbox-gl.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-mapbox-gl.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Mapbox -->
+
+	<!-- [START] - Get Geojson through ajax -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.ajax.js' %}"></script>
+	<!-- [END] - Get Geojson through ajax -->
+
+	<!-- [START] - Load KML to Map -->
+	<script type="text/javascript" src="{% static 'js/leaflet/KML.js' %}"></script>
+	<!-- [END] - Load KML to Map -->
+
+	{% block javascript_link %}
+	{% endblock %}
+
+	<!-- [START] - Switch -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-toggle.min.css' %}">
+	<script type="text/javascript" src="{% static 'js/bootstrap-toggle.min.js' %}"></script>
+	<!-- [END] - Switch -->
+
+
+	<!-- [START] - DRAW -->
+	<script type="text/javascript" src="{% static 'draw/Leaflet.draw.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/Leaflet.Draw.Event.js' %}"></script>
+	<link rel="stylesheet" type="text/css" href="{% static 'draw/leaflet.draw.css' %}">
+	<script type="text/javascript" src="{% static 'draw/Toolbar.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/Tooltip.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/ext/GeometryUtil.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/LatLngUtil.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/LineUtil.Intersect.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/Polygon.Intersect.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/Polyline.Intersect.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/ext/TouchEvents.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/draw/DrawToolbar.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Feature.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.SimpleShape.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Polyline.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Marker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Circle.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.CircleMarker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Polygon.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/draw/handler/Draw.Rectangle.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/edit/EditToolbar.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/EditToolbar.Edit.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/EditToolbar.Delete.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/Control.Draw.js' %}"></script>
+
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Poly.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.SimpleShape.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Rectangle.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Marker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.CircleMarker.js' %}"></script>
+	<script type="text/javascript" src="{% static 'draw/edit/handler/Edit.Circle.js' %}"></script>
+	<!-- [END] - DRAW -->
+
+	<!-- [START] - Color Range of Layers -->
+	<script type="text/javascript" src="{% static 'js/leaflet/choropleth.js' %}"></script>
+	<!-- [END] - Color Range of Layers -->
+
+	<!-- [START] - Bubble -->
+	<!--<script type="text/javascript" src="{% static 'js/leaflet/leaflet-bubble.js' %}"></script>-->
+	<!-- [END] - Bubble -->
+
+	<!-- [START] - Spatial Analaysis -->
+	<script type="text/javascript" src="{% static 'js/leaflet/turf.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/clipper.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/L.Clipper.js' %}"></script>
+	<!-- [END] - Spatial Analaysis -->
+
+	<!-- [START] - toKML -->
+	<script type="text/javascript" src="{% static 'js/leaflet/tokml.js' %}"></script>
+	<!-- [END] - toKML -->
+
+
+	<!-- [START] - Right Side Switch -->
+	<script src="{% static 'js/sidebarEffects.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/w-switcher4963.js' %}"></script>
+	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/switcher.css' %}">
+	<!-- [END] - Right Side Switch -->
+
+	<!--  Chart -->
+	<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.autocomplete.js' %}"></script>
+
+    <script src="{% static 'map/map_main.js' %}"></script>
+
+<style>
+
+	#nav_right li {padding-left:5px;}
+	 h5 {font-weight:bold;}
+
+	.glyphicon {font-size:16px;}
+
+	a {cursor:pointer;}
+
+	.ddListContainer > a > img, .ddListContainer > ul li a > img {max-width:120px;}
+	.demo-popup {width:150px; !important}
+	.mtitle {position:absolute;font-size:17px;color:#ffffff;font-weight:bold;}
+
+  	.navbar .nav > li > a, .navbar .dropdown-menu a {margin-top:3px;}
+
+	.ui-slider-handle {background-color:#ffffff;width:5px;}
+
+  	@media screen and (min-width: 768px) {
+	    #style {
+	        float:left;
+	        position: absolute;
+	    	bottom: 0;
+
+	    	}
+		}
+
+	#map {
+		width:100%;
+		height:100%;
+		position:fixed;
+		left:0px;
+		bottom: -45px;
+		background-color: #a1d3df;
+	}
+
+	#map .leaflet-right, .leaflet-draw{
+		display:none;
+	}
+
+
+	.leaflet-popup-content-wrapper{
+		/*height: 90px; */
+		border-radius: 3px;
+	}
+
+	.leaflet-popup-content{
+		margin:5px;
+		padding-top:15px;
+	}
+
+	#measurements{
+		z-index:100000000000000;
+		position:fixed;
+		left:60px;
+		top:50px;
+		width:13%;
+		background-color:rgba(255,255,255,1);
+		color:#000;
+		border:none;
+		display:none;
+	}
+
+	#con_panel{
+		position:absolute;
+		top:47px;
+		left:67%;
+		z-index:100000000000000;
+		width:250px;
+		display:none;
+	}
+
+
+	#swipecontrol{
+		z-index:100000000000000;
+		position:fixed;
+		bottom:5px;
+		width:100%;
+		color:#000;
+		border:none;
+		display:none;
+	}
+
+
+/* sortable - Layer Order */
+
+	.ui-state-default{
+		border: 1px solid rgba(0, 0, 0,.2);
+		background-color: rgba(0, 77, 153,.3);
+    	/* -webkit-box-shadow: 0px 0px 10px #000;
+   	 	-moz-box-shadow: 0px 0px 10px #000;
+    	box-shadow: 0px 0px 10px #000;
+		/*
+	}
+
+	.ui-state-highlight {
+		width: 210px;
+		height: 1.5em; line-height: 1.2em;
+		border: 1px solid #888888;
+		background-color: rgba(0, 77, 153,.3)!important;
+    	/*-webkit-box-shadow: 0px 0px 10px #888;
+   	 	-moz-box-shadow: 0px 0px 10px #888;
+    	box-shadow: 0px 0px 10px #888;
+    	*/
+	}
+
+	.glyphicon-remove-circle {cursor:pointer;}
+
+	#sortable { list-style-type: none; margin: 0; padding: 0; width: 80%; }
+
+  	#sortable li { margin: 0 5px 5px 5px; padding: 5px; font-size: 15px; height: 4.0em; color:#ffffff;}
+
+  	html>body #sortable li { height: 3.0em; line-height: 1.2em; }
+
+  	#sortable li span { position: absolute; }
+
+/* /sortable - Layer Order */
+
+
+</style>
+
+</head>
+<body style="width:100% !important;overflow:hidden;background:transparent;" onload='init_load()'>
+
+<div id="preloader">
+  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:100px;margin-left:50px;"></div>
+</div>
+
+<!-- [START] - Navbar -->
+<div id="map_menubar" class="navbar transparent navbar-inverse navbar-fixed-top" style="position:absolute;">
+
+	<div class="navbar-header">
+	    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-inverse-collapse">
+	      <span class="icon-bar"></span>
+	      <span class="icon-bar"></span>
+	      <span class="icon-bar"></span>
+	    </button>
+	    <a class="navbar-brand" href="#">GeoEDGE Pro</a>
+  	</div>
+
+
+  	<div class="navbar-collapse collapse navbar-inverse-collapse">
+
+		<ul class="nav navbar-nav">
+	      	<li class="">
+	       		<div class="main clearfix">
+					<div id="st-trigger-effects" class="column">
+						<button id="sidepanel_open" class="btn btn-xs btn-default" style="background:transparent;border:none;color:#ffffff;margin-top:7px;" data-effect="st-effect-1"><span style="margin-top:-7px;" class="glyphicon glyphicon-th-list"></span></button>
+					</div>
+		   		</div>
+	      	</li>
+      		<li id="upt">
+				{% if gid %}
+					{% if accessAllow == True %}
+      					<a id="modal-87694" href="#modal-container-87694" role="button" class="btn" data-toggle="modal"><i class="glyphicon glyphicon-plus-sign"></i></a>
+      				{% endif %}
+
+				{% else %}
+					<a id="modal-87694" href="#modal-container-87694" role="button" class="btn" data-toggle="modal"><i class="glyphicon glyphicon-plus-sign"></i></a>
+				{% endif %}
+			</li>
+	  		<li>
+	  			<a class="mtitle" style="background:inherited;pointer-events:none;" title="Add Layer"><strong id="map_title">Untitled Map</strong></a>
+				{% if gid %}
+					<div id="groupID" style="display:none;">{{ gid }}</div>
+				{% endif %}
+
+	  		</li>
+	  		<span></span>
+    	</ul>
+
+    	<ul class="nav navbar-nav navbar-right" id="nav_right">
+
+			<li id="help">
+        		<a title="Help"><span class="glyphicon glyphicon-question-sign" ></span></a>
+    		</li>
+			<li id="load_nmap">
+
+				{% if gid %}
+					<a id="new_mapl" href="/map/group/{{ gid }}" title="New Map"><span class="glyphicon glyphicon-file" ></span></a>
+				{% else %}
+					<a id="new_mapl" href="{% url 'map:index' %}" title="New Map"><span class="glyphicon glyphicon-file" ></span></a>
+				{% endif %}
+
+    		</li>
+    		<li>
+    			<a onclick="printMap()" title="Map Print"><span class="glyphicon glyphicon-print"></span></a>
+    		</li>
+    		<li id="sh">
+    			<a id="modal-968051" onclick="shareMap()"  href="#" data-toggle="modal" title="Map Share"><i class="glyphicon glyphicon-share" ></i><span></span></a>
+    		</li>
+    		<li>
+        		<a id="settings_panel" role="button"><span class="glyphicon glyphicon-cog" title="Settings"></span></a>
+    		</li>
+
+			<li class="dropdown" id="download_files">
+        		<a href="" class="dropdown-toggle" data-toggle="dropdown" data-toggle="tooltip"  title="Download"><span class="glyphicon glyphicon-download-alt">
+				</span> <b class="caret">&nbsp;</b></a>
+
+        		<ul class="dropdown-menu">
+					<li><a style="width:100%;" id="download_shp" onclick="downloadFile('SHP')"> SHP</a></li>
+					<li><a style="width:100%;" onclick="downloadFile('GEOJSON')"> Geojson</a></li>
+					<li><a style="width:100%;" onclick="downloadFile('KML')"> KML</a></li>
+        		</ul>
+      		</li>
+
+    		<li class="dropdown" id="save_link">
+        		<a href="" class="dropdown-toggle" data-toggle="dropdown" data-toggle="tooltip"  title="Save Map"><span class="glyphicon glyphicon-floppy-disk">
+				</span> <b class="caret">&nbsp;</b></a>
+
+        		<ul class="dropdown-menu">
+
+					{% if gid %}
+						{% if accessAllow == True %}
+        					<li><a style="width:100%;" onclick="saveAsMap('save')"><span class="glyphicon glyphicon-save"></span> Save</a></li>
+							<li><a style="width:100%;" onclick="saveAsMap('save_as')"><span class="glyphicon glyphicon-save"></span> Save As</a></li>
+						{% endif %}
+
+					{% else %}
+						<li><a style="width:100%;" onclick="saveAsMap('save')"><span class="glyphicon glyphicon-save"></span> Save</a></li>
+						<li><a style="width:100%;" onclick="saveAsMap('save_as')"><span class="glyphicon glyphicon-save"></span> Save As</a></li>
+					{% endif %}
+
+        		</ul>
+      		</li>
+      		<li class="dropdown" style="margin-top:-2px;">
+        		<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-toggle="tooltip"  title="Profile">
+					<span id="user_photo">
+						<img class="img-circle" style="width:22px;" id="pro_image" src="{% static 'img/1601481.jpg' %}">
+					</span>
+					<span id="login_uname">
+                        {% if user.is_authenticated %}
+                             {{ user.username }}
+                        {% endif %}
+                    </span>
+					<b class="caret">&nbsp</b>
+				</a>
+
+        		<ul class="dropdown-menu">
+          			<li><a href="{% url 'geoedge:index' %}" style="width:100%;">Profile</a>
+          			</li>
+          			<li class="divider"></li>
+          			<li><a href="{% url 'logout' %}"  style="width:100%;">Log out</a></li>
+        		</ul>
+      		</li>
+      	</ul>
+
+  	</div>
+</div>
+<!-- [END] - Navbar -->
+
+
+<!-- [START] - Setting panel -->
+
+<div class="panel panel-default" id="con_panel">
+	<div class="panel-heading">Control Panel <span style="float:right;margin-right:5px;color:red;cursor:pointer;" id="cclose">x</span></div>
+
+	<ul class="list-group" id="swith1">
+		<li class="list-group-item">
+			My Location
+			<div class="pull-right" style="margin-top:-3px;">
+			   <input type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="info" id="track_location">
+			</div>
+		</li>
+		<li class="list-group-item">
+			Info Window
+			<div class="pull-right" style="margin-top:-3px;">
+			   <input type="checkbox" checked data-toggle="toggle" data-size="mini" data-onstyle="info" id="info_window_switch">
+			</div>
+		</li>
+		<li class="list-group-item">
+			Digitizing Tool Box
+			<div class="pull-right" style="margin-top:-3px;">
+			   <input type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="info" id="digitizing_tool" onChange="digitizing_tool()">
+			</div>
+		</li>
+		<li class="list-group-item">
+			Measurements Tool box
+			<div class="pull-right" style="margin-top:-3px;">
+				 <input type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="info" id="measurements_tool">
+			</div>
+		</li>
+		<li class="list-group-item">
+			Legend
+			<div class="pull-right" style="margin-top:-3px;">
+			   <input type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="info" id="legend_box">
+			</div>
+		</li>
+		<li class="list-group-item">
+			Swipe Control
+			<div class="pull-right" style="margin-top:-3px;">
+			   <input type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="info" id="swipe_control">
+			</div>
+		</li>
+	</ul>
+</div>
+
+
+<!-- [START] - Measurements Tool Box -->
+<div class="alert Measure alert-info" id="measurements">
+	<center>
+	<span > <strong>Measurements</strong></span>
+	<br><br>
+	<span >
+		<a role="button">
+			<img class="img1" src="{% static 'img/leftarrow12.png' %}" onclick="measure('Hand')">
+		</a>
+		<a role="button">
+			<img class="img1" src="{% static 'img/full_screen_con.png' %}" onclick="measure('SetMap')">
+		</a>
+		<a role="button">
+			<img class="img1" src="{% static 'img/leftarrow11.png' %}" onclick="measure('Line')">
+		</a>
+		<a role="button">
+			<img class="img1" src="{% static 'img/stats19.png' %}" onclick="measure('Area')">
+		</a>
+		<a role="button">
+			<img class="img1" src="{% static 'img/trash.png' %}" onclick="measure('DeleteAll')">
+		</a>
+	</span>
+		</center>
+</div>
+<!-- [END] - Measurements Tool Box -->
+
+
+<!-- [START] - Swipe Control -->
+<div class="alert swipe_control" id="swipecontrol">
+</div>
+<!-- [END] -  Swipe Control -->
+
+
+<div id="st-container" class="st-container" style="position: relative;">
+
+	<!-- [START] Left Side -->
+
+	<div class="st-menu st-effect-1" id="menu-1" style="background:rgba(29, 29, 29, 0.6);color:#ffffff; top:45px;">
+
+		<div style="margin-left:10px;">
+
+			<br/>
+			Select Map Type
+			<br>
+			<div id="base_layer_options" class="se">
+
+				<input type="radio" name="name" id="rad1" checked  onclick="changeBaseLayer('osm')" /> <label for="rad1" onclick="" data-content="OSM">OpenLayer</label>
+				<input type="radio" name="name" id="rad2"  onclick="changeBaseLayer('googleSatellite')" /> <label for="rad2" onclick="" data-content="Google Satellite">Google Satellite</label>
+				<input type="radio" name="name" id="rad3" onclick="changeBaseLayer('googleTerrain')" /> <label for="rad3" onclick="" data-content="Google Terrain">Google  Terrain</label>
+				<input type="radio" name="name" id="rad4" onclick="changeBaseLayer('bing_map')" /> <label for="rad4" onclick="" data-content="Bing">Bing</label>
+				<!--<input type="radio" name="name" id="rad5" onclick="changeBaseLayer('mapbox')" /> <label for="rad5" onclick="" data-content="Mapbox">Mapbox</label>-->
+
+			</div>
+			<br>
+			Change Layer Order
+			<div style="margin:5px 0;"></div>
+
+			<div class="mCustomScrollbar" style="max-height:250px; overflow:auto;padding:0px;">
+
+				<ul id="sortable" style="">
+				</ul>
+
+			</div>
+
+			<br>
+			Description
+			<div style="margin:5px 0;"></div>
+
+			<div class="mCustomScrollbar" style="max-height:70px; width:96%; overflow:auto;padding:0px;">
+				<small><div id="map_description"></div></small>
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- [END] Left Side -->
+
+
+{% block content %}
+{% endblock %}
+
+</div>
+
+
+</body>
+
+<script type="text/javascript">
+
+	function init_load(){
+
+		{% if map_id %}
+
+			var mapID = {{ map_id }};
+			var layer_status = "{{ layer_status }}";
+
+			if (layer_status == 1) {
+
+				var map_type = "{{ map_type }}";
+				var layerfile_type = "{{ layer_file_type }}";
+				var filename = "{{ filename }}";
+				var layerName = "{{ layer_name }}";
+				var layerDesc = "{{ layer_description }}";
+
+				init(layer_status, mapID, layerfile_type, filename, map_type, layerName);
+
+				$("#map_title").html(layerName);
+				$("#map_description").html(layerDesc);
+				$("#print_map_description_container").html(layerDesc);
+
+			}else{
+				init();
+			}
+
+		{% else %}
+
+			init();
+
+		{% endif %}
+
+	}
+
+	jQuery(window).load(function() {
+		jQuery("#status").delay(1000).fadeOut();
+		jQuery("#preloader").delay(1000).fadeOut("slow");
+	});
+
+</script>
+
+<script>
+
+/* [START] - Help */
+$('#help').click(function(){
+
+	var tour = new Tour({
+        storage : false
+    });
+
+
+    tour.addSteps([
+      {
+        element: ".navbar-brand",
+        placement: "bottom",
+        title: "Welcome to GeoEDGE Pro!",
+        content: "This tour will guide you through some of the features we'd like to point out."
+      },
+    ]);
+
+    tour.addSteps([
+      {
+        element: "#st-trigger-effects",
+        placement: "bottom",
+        title: "Layers settings side panel",
+        content: "to appear this controller click on Map page options on map page navigation Left side."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#plus",
+        placement: "bottom",
+        title: "Add Layers",
+        content: "Shows list of all layers and their descriptions that belongs to user or user group. And also in here we can add layers to map."
+      },
+    ]);
+
+
+	tour.addSteps([
+      {
+        element: ".mtitle",
+        placement: "bottom",
+        title: "Map Name",
+        content: "Display title of the map page."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#tags",
+        placement: "bottom",
+        title: "Layer Search",
+        content: "Located in Map page navigation Left side.by using this you can search layer by its name. Type layer name you want to search."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#help",
+        placement: "left",
+        title: "Quick Tour",
+        content: "This tour will guide you through some of the features we'd like to point out."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#load_nmap",
+        placement: "bottom",
+        title: "New Map",
+        content: "Open New Map Page"
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#digi",
+        placement: "bottom",
+        title: "Digitizing",
+        content: "Digitizing tool box"
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#mes",
+        placement: "bottom",
+        title: "Measurements",
+        content: "Measurement tool box to measure length and area"
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#info",
+        placement: "bottom",
+        title: "Information click",
+        content: "On / Off info window popup"
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#leg",
+        placement: "bottom",
+        title: "Map Legend",
+        content: "Toggle the legend visibility in map."
+      },
+    ]);
+
+   	tour.addSteps([
+      {
+        element: "#print_link",
+        placement: "bottom",
+        title: "Print",
+        content: "Click here to print your map."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#sh",
+        placement: "bottom",
+        title: "Share Map",
+        content: "Click here to share your map."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#sty",
+        placement: "bottom",
+        title: "Map styler widget controller",
+        content: "Click on style icon in the map page to style your map .then map style wizard window will appear."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#upp",
+        placement: "bottom",
+        title: "upload layer",
+        content: "Fill details of the layer you going to upload by files and then submit it. After that upload window will appears shown below. Note that in that window there is disabled button that means till you upload files you can’t go to next step. "
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#save_link",
+        placement: "bottom",
+        title: "Save Map",
+        content: "Click on save icon in the map page to save your map .then save map window will appear."
+      },
+    ]);
+
+	tour.addSteps([
+      {
+        element: "#user_photo",
+        placement: "left",
+        title: "Profile Indicater",
+        content: "User profile drop down indicator."
+      },
+    ]);
+
+
+	tour.addSteps([
+      {
+        element: ".ol-zoom",
+        placement: "right",
+        title: "Map Zoom Indicater",
+        content: "Click here to zoom in map."
+      },
+    ]);
+
+    // Initialize the tour
+    tour.init();
+
+    // Start the tour
+    tour.start();
+
+});
+
+/* [END] - Help */
+
+</script>
+
+</html>

@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>GeoEDGE Map Engine</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="shortcut icon" href="{% static 'img/fav.ico' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style_adpc.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/leaflet.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-tour-standalone.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery-ui.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/appMap.css' %}">
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB08kjICw-tuCcRfgATXY6qOMMQxxnY-ys"  async defer></script>
+    <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/bootstrap-tour-standalone.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.js' %}"></script>
+
+    <!-- [START] - Overlay Map Layer -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-providers.js' %}"></script>
+	<!-- [END] - Overlay Map Layer -->
+
+	<!-- [START] - Overlay Map Layer - Google -->
+	<script type="text/javascript" src="{% static 'js/leaflet/Leaflet.GoogleMutant.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Google -->
+
+	<!-- [START] - Overlay Map Layer - Bing -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-bing-layer.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Bing -->
+
+	<!-- [START] - Overlay Map Layer - Mapbox -->
+	<script type="text/javascript" src="{% static 'js/leaflet/mapbox-gl.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet-mapbox-gl.js' %}"></script>
+	<!-- [END] - Overlay Map Layer - Mapbox -->
+
+	<!-- [START] - Get Geojson through ajax -->
+	<script type="text/javascript" src="{% static 'js/leaflet/leaflet.ajax.js' %}"></script>
+	<!-- [END] - Get Geojson through ajax -->
+
+    <!-- [START] - Switch -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-toggle.min.css' %}">
+	<script type="text/javascript" src="{% static 'js/bootstrap-toggle.min.js' %}"></script>
+	<!-- [END] - Switch -->
+
+	<!-- [START] - Color Range of Layers -->
+	<script type="text/javascript" src="{% static 'js/leaflet/choropleth.js' %}"></script>
+	<!-- [END] - Color Range of Layers -->
+
+
+	<!-- [START] - Right Side Switch -->
+	<script src="{% static 'js/sidebarEffects.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/w-switcher4963.js' %}"></script>
+	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/switcher.css' %}">
+	<!-- [END] - Right Side Switch -->
+
+	<!-- [START] - MiniMap -->
+	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/Control.MiniMap.css' %}">
+	<script type="text/javascript" src="{% static 'js/leaflet/Control.MiniMap.js' %}"></script>
+	<!-- [END] - MiniMap -->
+
+	<!-- [START] - GraphicScale -->
+	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/Leaflet.GraphicScale.min.css' %}">
+	<script type="text/javascript" src="{% static 'js/leaflet/Leaflet.GraphicScale.min.js' %}"></script>
+	<!-- [END] - GraphicScale -->
+
+	<!-- [START] - Grid -->
+	<script type="text/javascript" src="{% static 'js/leaflet/L.Grid.js' %}"></script>
+	<!-- [END] - Grid -->
+
+	<!--  Chart -->
+	<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.autocomplete.js' %}"></script>
+
+	<script src="{% static 'map/map_view.js' %}"></script>
+
+    <style>
+        body {
+              background: rgb(204,204,204);
+            }
+
+        page {
+              background: white;
+              display: block;
+              margin: 0 auto;
+              margin-bottom: 0.5cm;
+              box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+            }
+
+        page[size="A4"] {
+              width: 21cm;
+              /*height: 29.7cm;*/
+            }
+
+		#map {
+			width: 20cm;
+			height: 10cm;
+			border: 1px solid #737373;
+			background-color: #fff;
+			-webkit-print-color-adjust: exact;
+		}
+
+		#map .leaflet-control-attribution, .leaflet-draw, .leaflet-control-minimap-toggle-display-bottomright{
+			display:none;
+		}
+
+		#map .leaflet-control-minimap{
+            top: 0.2cm;
+            right: -0.2cm;
+            border: solid rgba(255, 255, 255, 1.0) 2px;
+            border-radius: 0px;
+		}
+
+		#map .leaflet-control-graphicscale{
+			display: none;
+		}
+
+		.leaflet-control-graphicscale .label {
+		    color:#000;
+		}
+
+		.leaflet-grid-label .lng {
+			margin-left: 8px;
+			-webkit-transform: rotate(90deg);
+			transform: rotate(90deg);
+		}
+            
+
+        .title{
+        	font-size: 14pt;
+        	font-family: sans-serif;
+        	font-weight: bold;
+        }
+
+        .text_style{
+        	font-size: 10pt;
+        	font-family: sans-serif;
+        }
+
+        .rectangle {
+		  	height: 0.5cm;
+		  	width: 1.5cm;
+		  	border: 1px solid #737373;
+		  	margin-left: 20px;
+		  	margin:2px;
+		  	/*-webkit-print-color-adjust: exact;
+		  	background-color: #555;*/
+		}
+
+        @media print {
+              body, page {
+				margin: 0;
+                box-shadow: 0;
+              }
+		}
+    </style>
+
+</head>
+<body onload='init_load()'>
+
+<page size="A4">
+    <div style="padding:20px; padding-top: 40px;">
+        <table width="100%">
+            <tbody>
+            	<tr>
+                    <td colspan="4" class="title">
+                    	{% if title == 1 %}
+                    	<center style="padding-bottom: 20px;">{{ layer_name }}</center>
+                    	{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" width="100%">
+                        <div id="map_area">
+							<div id="map"></div>
+						</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 20px;">
+                    	{% if north_arrow == 1 %}
+							<img class="img1" style="padding:20px; width:100px; height:100px;" src="{% static 'img/north-arrow.png' %}">
+						{% endif %}
+                    </td>
+                    <td colspan="2">
+                		<div id="scale_div">
+            			</div>
+                    </td>
+                    <td>
+                    	
+                    </td>
+                </tr>
+                <tr>
+                    
+                    <td colspan="2" width="30%">
+                    	<div id="legend_div" style="width: 100%; margin-left:20px;">
+                    		<table width="150px" id="legend_table">
+                    			<thead><tr><td colspan="2" class="text_style" style="padding: 10px;"><b><center>Legend</center></b></td></tr></thead>
+                    			<tbody>
+                    			</tbody>
+                    		</table>
+                    	</div>
+					</td>
+
+					<td colspan="2" class="text_style" width="70%" valign="top">
+						{% if citation == 1 %}
+							<div class="text_style">
+                    			The citation portion of a map constitutes the metadata of the map
+                    		</div>
+                    	{% endif %}
+
+                    	<br><br>
+
+                    	{% if desc_status == 1 %}
+                    		<p class="text_style"><b>Description</b></p>
+                    		<div class="text_style">
+                    			{{ layer_descrip }}
+                    		</div>
+                    	{% endif %}
+					</td>
+
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</page>
+
+</body>
+
+<script>
+
+	function init_load(){
+
+		var mapID = '{{ map_id }}';
+		var mapZoom = '{{ map_zoom }}';
+		var mapCenter = '{{ map_center }}';
+		var map_type = '{{ map_type }}';
+		var layerTitle = '{{ layerTitle }}';
+		var layer_status = '{{ layer_status }}';
+		var group_id = '{{ group_id }}';
+		var data_frame = '{{ data_frame }}';
+		var min_map = '{{ insert_map }}';
+		var scale = '{{ scale }}';
+		var legend_status = '{{ legend_status }}';
+		var grid_ref = '{{ grid_ref }}';
+		
+		if(layer_status == '1'){
+			if(map_type == 'HTML'){
+				init(mapID, group_id, mapZoom, mapCenter, layerTitle, data_frame, min_map, legend_status, grid_ref);
+
+				if(scale == '1'){
+					let scale_block = document.getElementsByClassName("leaflet-bottom")[0];
+				    let scale_clone = scale_block.firstElementChild.cloneNode(true);
+				    let scale_div = document.getElementById("scale_div");
+				    scale_div.appendChild(scale_clone);
+
+				}
+			
+			}
+		}
+	}
+
+	
+</script>
+
+
+</html>
