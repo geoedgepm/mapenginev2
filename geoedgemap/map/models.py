@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.db import models
 
-
 class Layerfiles(models.Model):
     id = models.AutoField(primary_key=True)
     layer_name = models.CharField(max_length=255, blank=True)
@@ -37,7 +36,6 @@ class Layer_column_name(models.Model):
     column_status = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
-
 
 class Layer_draw(models.Model):
     id = models.AutoField(primary_key=True)
@@ -77,7 +75,6 @@ class Groups(models.Model):
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
     profile_image = models.TextField(max_length=200, blank=True)
-
 
 class Group_member(models.Model):
     id = models.AutoField(primary_key=True)
@@ -157,7 +154,6 @@ class Group_layer_drawfile(models.Model):
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
     layer_order = models.IntegerField(default='0')
-
 
 class Layer_maps(models.Model):
     id = models.AutoField(primary_key=True)

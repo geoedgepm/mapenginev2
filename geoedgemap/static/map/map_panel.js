@@ -1,6 +1,7 @@
-// var server_url = 'https://geoedgemaps.com';
-// var subdivision = '/geoedgepro';
-var server_url = 'http://127.0.0.1:8000';
+var server_url = 'http://geoedge.lk';
+var subdivision = '/aaib_map';
+//var server_url = 'http://127.0.0.1:8000/';
+//var subdivision = '';
 
 $(function(){
 

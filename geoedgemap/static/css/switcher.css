@@ -35,7 +35,7 @@ box-shadow:  2px 10px 19px 0px rgba(0, 0, 0, 0.75);
     width: 50px;
     cursor: pointer;
     border-radius: 15px 0px 0px 15px;
-    background-color: #38A4D9;
+    background-color: #007839;
     -webkit-transition: background-color 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), color 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
     transition: background-color 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), color 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
     -webkit-box-shadow:  2px 4px 12px -20px rgba(0, 0, 0, 0.75);
