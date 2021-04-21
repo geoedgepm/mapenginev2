@@ -1,7 +1,7 @@
 {% extends "map/map_layout.html" %}
 {% load static %}
 
-
+{% load staticfiles%}
 {% block css_link %}
 	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.fileupload.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'css/colpick.css' %}">
@@ -79,117 +79,16 @@
 
 	@media print
 	{
-		#map_print {
-			width:800px!important;
-			height:400px!important;
-			background-color: #a1d3df;
-			top:50px;
-		}
-
-
-
-		#print_title_content{
-			width:100%;
-		}
-
-		#print_title{
-		 	height: 45px !important;
-		 	color: #ffffff !important;
-		 	font-size: 20px;
-			font-weight: bold;
-		 	padding: 10px;
-		 	display:block;
-			background-color: #008cba !important;
-			-webkit-print-color-adjust: exact;
-
-		}
-
-		.print_subcontent{
-			background-color: #008cba !important;
-			-webkit-print-color-adjust: exact;
-			color: #ffffff !important;
-			font-weight: bold;
-		}
-
-
-		.rectangle_print{
-			height: 10px;
-			width: 25px;
-			float: left;
-			padding: 5px;
-			margin-top: 6px;
-			margin-right: 10px;
-		}
-
-		#map_print .leaflet-right, .leaflet-draw, .leaflet-control{
-			display:none;
-		}
-
-		#map_area, .w-switcher, #menu-1, #con_panel, #measurements, #legend, #range {
-			display:none;
+		#map_print, .w-switcher {
+			display: none;
 		}
 	}
 </style>
 
 <div id="map_print_area" class="print_page">
 
-	<div id="print_title_content">
-		<center>
-			<div style="width:100%;" id="print_title"></div>
- 		</center>
-	</div>
-
 	<div id="map_print"></div>
 
-	<div style="width:100%; position: absolute; top:500px;" id="print_content">
-
-		<div class="row">
-			<div class="col-xs-6">
-				<div class="panel panel-primary">
-					<div class="panel-heading print_subcontent">Legend</div>
-						<div class="panel-body">
-							<div class="row">
-								<div class="col-xs-12">
-									<div id="print_legend_context" class="geostats-legend">
-
-									</div>
-									<br>
-								</div>
-							</div>
-						</div>
-				</div>
-
-				<div class="panel panel-primary">
-					<div class="panel-heading print_subcontent">Sourse</div>
-						<div class="panel-body">
-						 	<div class="row">
-								<div id="print_sourse" class="col-xs-12">
-									OpenStreetMap
-								</div>
-						 </div>
-					</div>
-				</div>
-
-			</div>
-
-			<div class="col-xs-6">
-				<div class="row">
-					<div class="col-xs-12">
-						<div class="panel panel-primary">
-							<div class="panel-heading print_subcontent">Description</div>
-							<div id="print_map_description_container" class="panel-body"></div>
-							</div>
-					</div>
-
-				</div>
-			</div>
-
-			<div id="c_container" class="col-xs-12">
-			</div>
-		</div>
-
-
-	</div>
 </div>
 
 <!-- /Print -->
@@ -224,13 +123,13 @@
 
 	#swith1 .list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
 		color:#000;
-		background-color:#fff;
-		border-color:#fff;
-		border:1px solid #dddddd
+		background-color:#000;
+		border-color:#000;
+		border:1px solid #000
 	}
 
 	div.bhoechie-tab-menu div.list-group>a.active:after {
-		border-left:10px solid #088FBC;
+		border-left:10px solid #007839;
 	}
 
 	.panel-title {font-size:15px;}
@@ -380,7 +279,9 @@
 						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
 
 						<ul class="nav nav-tabs lo">
-							<li class="active"><a data-toggle="tab" href="#tab1primary">Upload Layer</a>
+							<li class="active"><a data-toggle="tab" href="#tab3primary" id="aaib_tab">AAIB</a>
+							</li>
+							<li><a data-toggle="tab" href="#tab1primary">Upload Layer</a>
 							</li>
 							<li><a data-toggle="tab" href="#tab2primary" id="search_layer_tab">Search Layer</a>
 							</li>
@@ -390,11 +291,97 @@
 
             		<div class="panel-body lo">
 
-
                 		<div class="tab-content">
+						<!--AAIB -->
+							<div class="tab-pane fade in active" id="tab3primary">
+
+                      			<div id="wrap3">
+
+									<div id="panel" style="overflow:hidden;">
+
+    									<div id="content_panel">
+
+											<!-- <div class="well" style="border:1px solid #cccccc; padding:3px;"> -->
+
+												<div class="col-md-4">
+													<br>
+											  		<select id="aaib_section" class="form-control" name="aaib_province" style="height:25px;padding:0;">
+											  		<option value="">Section</option>
+											  		<option value="1">Farm Field</option>
+											  		<option value="2">Yaya</option>
+													</select>
+											  	</div>
+
+										  		<div class="col-md-4">
+										  			<br>
+											  		<select id="aaib_province" class="form-control" name="aaib_province" style="height:25px;padding:0;">
+											  		<option value="">Province</option>
+													</select>
+											  	</div>
+
+										  		<div class="col-md-4">
+										  			<br>
+											  		<select id="aaib_district" class="form-control" name="aaib_district" style="height:25px;padding:0;">
+											  			<option value="">District</option>
+													</select>
+											  	</div>
+
+											  	<div class="col-md-4">
+											  		<br>
+											  		<select id="aaib_asc" class="form-control" name="aaib_district" style="height:25px;padding:0;">
+											  			<option value="">ASC</option>
+													</select>
+											  	</div>
+
+											  	<div class="col-md-4">
+											  		<br>
+											  		<select id="aaib_ds" class="form-control" name="aaib_ds" style="height:25px;padding:0;">
+											  			<option value="">DS</option>
+													</select>
+											  	</div>
+
+											  	<div class="col-md-4">
+											  		<br>
+											  		<select id="aaib_gn" class="form-control" name="aaib_gn" style="height:25px;padding:0;">
+											  			<option value="">GN</option>
+													</select>
+											  	</div>
+
+											  	<div class="col-md-12">
+											  		<br>
+											  		<button class="btn btn-sm btn-success" id="aaib_search" style="width: 100%; padding: 3.5px" type="button">Search</button>
+											  	</div>
+
+<!--											  	<div class="col-md-6">-->
+<!--											  		<br>-->
+<!--											  		<button class="btn btn-sm btn-info" id="aaib_aaib" style="width: 100%; padding: 3.5px" type="button" onclick="allSelectedAAIB()">Add Selected Layers</button>-->
+
+<!--											  		<br><br>-->
+<!--											  	</div>-->
+
+
+	 										<!-- </div> -->
+
+
+		 									<div class="scrollable" id="all_layer_list_panel" style="max-height:220px;overflow-y:auto;overflow-x:hidden;padding:5px;width:100%;">
+
+												<!-- List -->
+												<div id="all_aaib_list" style="width:100%;">
+												</div>
+												<!-- /List -->
+
+            								</div>
+
+     									</div>
+
+									</div>
+
+								</div>
+                    		</div>
+						<!-- /AAIB -->
 
 						<!-- Uploading Layers Panel -->
-                    		<div class="tab-pane fade in active" id="tab1primary">
+							<div class="tab-pane fade" id="tab1primary">
                       			<div id="ed" style="margin-right:40px;">
 
 									<div class="scrollable" id="chatlist2" style="max-height:400px; overflow-y:auto;overflow-x:hidden; padding:0px;">
@@ -409,7 +396,7 @@
 												<div class="form-group">
 												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Layer/Legend Name<span style="color:red;">*</span></label>
 											  		<div class="col-md-9">
-												  		<input id="layer_name" name="layer_name" type="text" placeholder="Title" style="" class="form-control input-md" maxlength="20" required="">
+												  		<input id="layer_name" name="layer_name" type="text" placeholder="Title" style="" class="form-control input-md" maxlength="25" required="">
 												  	</div>
 												</div>
 
@@ -514,7 +501,7 @@
 
     									<div id="content_panel">
 
-											<div class="well" style="border:1ps solid;position:relative;padding:3px;">
+											<div class="well" style="border:1px solid #cccccc;position:relative;padding:3px;">
 
 												<div class="input-group" id="other">
 													<input type="text" class="form-control" style="height:30px;" id="layers_searching" placeholder="Search...">
@@ -620,7 +607,7 @@
 												<div class="form-group">
 												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Layer/Legend Name<span style="color:red;">*</span></label>
 											  		<div class="col-md-9">
-												  		<input id="layer_name_save" name="layer_name" type="text" placeholder="Title" style="" class="form-control input-md" maxlength="20" required="">
+												  		<input id="layer_name_save" name="layer_name" type="text" placeholder="Title" style="" class="form-control input-md" maxlength="25" required="">
 												  	</div>
 												</div>
 
@@ -699,14 +686,14 @@
 												<div class="form-group">
 												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-5px; padding-left:30px;">Layer Name</label>
 											  		<div class="col-md-8">
-												  		<input id="layer_name_add" name="layer_name" type="text" placeholder="Untitled Drawn" style="" class="form-control input-md" maxlength="20" required="">
+												  		<input id="layer_name_add" name="layer_name" type="text" placeholder="Untitled Drawn" style="" class="form-control input-md" required="">
 												  	</div>
 												</div>
 
 												<center>
 													<div class="form-group">
 														<div class="col-md-12">
-															<button id="add_layer_name_submit" class="btn btn-success" onclick="add_layer_name()">Add</button>
+															<button id="add_layer_name_submit" class="btn btn-success" onclick="add_layer_name(1, 234)">Add</button>
 														</div>
 													</div>
 												</center>
@@ -725,10 +712,58 @@
 		</div>
 	</div>
 </div>
-
 <!-- [END] - Add Layer Name for Drawn -->
 
+<!-- [START] -- Confirm to open my project -->
+<div class="modal fade" id="modal_confirm_to_open_my_project" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:100px; z-index:100000000000001;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+				<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
 
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+						<ul class="nav nav-tabs lo">
+							<li class="active">Confirm</li>
+						</ul>
+	            	</div>
+
+					<div class="panel-body lo">
+						<div class="tab-content">
+							<div class="tab-pane fade in active">
+								<div style="margin-right:40px;">
+									<div style="width:100%">
+
+
+										<div id="layer_form_add_layerName" class="form-horizontal" style="width:100%;margin-top:-0px;">
+											<fieldset>
+												<center>
+
+													<div style="padding: 20px;">
+													  	<p id="confirm_to_open_project_content"></p>
+													</div>
+
+													<div class="form-group">
+														<button id="cancle_btn_open_project" class="btn btn-warning" onclick="cancle_open_project()">Cancel</button>
+														<button id="ok_btn_open_project" class="btn btn-success" onclick="open_project()">OK</button>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- [END] -- Confirm to open my project -->
 
 <!-- [START] - Share  Modal -->
 
@@ -1915,6 +1950,88 @@
 <!-- [END] - Chart Display -->
 
 
+<!-- [START] - Save - Map side -->
+
+<div class="modal fade" id="modal_container_save_as_map" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-top:50px;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-body" style="margin-bottom:0;padding:0;">
+				<div class="panel with-nav-tabs panel-primary lo"  style="padding:0;margin-bottom:0;">
+
+					<div class="panel-heading">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true"> x </button>
+						<ul class="nav nav-tabs lo">
+							<li class="active">Save As Map</li>
+						</ul>
+	            	</div>
+
+					<div class="panel-body lo">
+						<div class="tab-content">
+							<div class="tab-pane fade in active">
+								<div>
+									<div class="scrollable" style="max-height:400px; overflow-y:auto; padding:0px;">
+
+										<div>
+											<small><span style="color:red" id="layer_error_save_as_map"></span></small>
+										</div>
+
+										<div id="layer_form_save_map" class="form-horizontal" style="width:100%;margin-top:-0px;">
+											<fieldset>
+
+												<div class="form-group">
+												  	<label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Title<span style="color:red;">*</span></label>
+											  		<div class="col-md-8">
+												  		<input id="layer_name_save_map" name="layer_name" type="text" style="" class="form-control input-md" maxlength="25" required="">
+												  	</div>
+												</div>
+
+
+												<div class="form-group">
+												 	<label class="col-md-3 control-label" for="">Layer Type</label>
+												 	<div class="col-md-8">
+														<label class="radio-inline" style="margin-left:15px;">
+														  	<input type="radio" checked name="layer_status_map" id="layer_private_save_map" value="private"> Private
+														</label>
+														<label class="radio-inline" >
+														  	<input type="radio" name="layer_status_map" id="layer_public_save_map" value="public"> Public
+														</label>
+													</div>
+											  	</div>
+
+												<div class="form-group">
+												  <label class="col-md-3 control-label" for="layer_descri">Description</label>
+												  <div class="col-md-8">
+												    <textarea class="form-control" id="layer_descri_save_map" name="layer_descri" style="height:70px;"></textarea>
+												  </div>
+												</div>
+
+												<center>
+													<div class="form-group">
+														<div class="col-md-12">
+															<input type="hidden" name="lastSavedId" id="last_saved_id_map" value="">
+															<button id="layer_submit_save_map" class="btn btn-success" onclick="save_as_map()">Submit</button>
+														</div>
+													</div>
+												</center>
+
+											</fieldset>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [END] - Save - Map side -->
+
+
 <script>
 
 /* Snippet Vertical Tab - Javascript (Right Side) */
@@ -1978,8 +2095,6 @@ $(document).ready(function() {
 	});
 
 })(jQuery);
-
-
 
 </script>
 

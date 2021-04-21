@@ -1,46 +1,57 @@
-from datetime import datetime
+# encoding=utf8
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+from datetime import datetime, date
+
+from io import BytesIO
 import os
 import glob
 import subprocess
 import json
+# import geojson
 import shutil
+import shapefile
 
+from zipfile import *
 from osgeo import ogr, osr
-
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.decorators.csrf import csrf_exempt
+from pyproj import Proj, transform
+from django.db import connection
 from django.conf import settings
 from django.db.models import Q
-from django.contrib.auth.models import User
-from django.db import connection
+# -*- coding: utf-8 -*-
+# from __future__ import unicode_literals
 
 from django.core.files.storage import FileSystemStorage
+from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, HttpResponseForbidden
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from models import Layerfiles, Layerfile_attachments, Layer_column_name, Layer_draw, Groups, Group_member, Group_layerfiles, Group_layerfile_attachments, Group_ayer_column_name, Group_layer_draw, Layer_drawfile, Group_layer_drawfile, Layer_maps, Layer_mapfiles, Group_layer_maps, Group_layer_filemaps
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
 
-from .models import Layerfiles, Layerfile_attachments, Layer_column_name, Layer_draw, Groups, Group_member, \
-    Group_layerfiles, Group_layerfile_attachments, Group_ayer_column_name, Group_layer_draw, Layer_drawfile, \
-    Group_layer_drawfile, Layer_maps, Layer_mapfiles, Group_layer_maps, Group_layer_filemaps
-
+import urllib
+import urllib2
 
 def index(request):
-    return render(request, 'map/index.html')
 
+    if request.session['access_token'] is None:
+        return redirect('logout')
+
+    return render(request, 'map/index.html')
 
 def print_map(request):
     return render(request, 'map/print_map.html')
 
-
 def share_map(request):
     return render(request, 'map/share_map.html')
 
-
-def index_group(request, gid=None, *args, **kwargs):
+def index_group(request,gid=None, *args, **kwargs):
     if gid is not None:
         current_user = request.user
         accessStatus = False
-        memberStatus = Group_member.objects.filter(
-            group_id=gid, member=current_user.pk)
+        memberStatus = Group_member.objects.filter(group_id=gid, member=current_user.pk)
 
         if len(memberStatus) > 0:
             for member_status in memberStatus:
@@ -55,7 +66,6 @@ def index_group(request, gid=None, *args, **kwargs):
         else:
             return redirect('/map/')
 
-
 @csrf_exempt
 def add_layer_file(request):
     if request.method == "POST":
@@ -67,16 +77,16 @@ def add_layer_file(request):
         current_user = request.user
         nowTime = datetime.now()
 
-        if(layer_name != '' and layer_status != ''):
+        if(layer_name !='' and layer_status !=''):
 
             post_layerfile = Layerfiles(
-                layer_name=layer_name,
+                layer_name= layer_name,
                 layer_status=layer_status,
                 layer_descri=layer_descri,
-                layerfiles_status=0,
-                user_id=current_user.pk,
-                created_at=nowTime.strftime("%Y-%m-%d %H:%M:%S"),
-                updated_at=nowTime.strftime("%Y-%m-%d %H:%M:%S")
+                layerfiles_status = 0,
+                user_id = current_user.pk,
+                created_at = nowTime.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
             )
             post_layerfile.save()
             layerfileId = post_layerfile.pk
@@ -101,28 +111,26 @@ def add_layer_file(request):
                     post_group_layerfile.save()
                     group_layerfileId = post_group_layerfile.pk
 
-                    post_layerfile.group_layerfiles_id = group_layerfileId
+                    post_layerfile.group_layerfiles_id=group_layerfileId
                     post_layerfile.save()
 
             # /For Group
 
-            response = {'status': 1, 'layerfileID': layerfileId,
-                        'message': 'Succssfully added'}
+            response = {'status' : 1, 'layerfileID': layerfileId, 'message' : 'Succssfully added'}
             return JsonResponse(response)
         else:
-            response = {'status': 0, 'error': 'Field required'}
+            response = {'status': 0, 'error':'Field required'}
             return JsonResponse(response)
     else:
-        response = {'status': 0, 'error': 'Try Again'}
+        response = {'status': 0, 'error':'Try Again'}
         return JsonResponse(response)
-
 
 @csrf_exempt
 def upload_layer_files(request, layer_id=None, *args, **kwargs):
     if request.method == "POST":
         files = request.FILES.getlist('files[]')
 
-        if (layer_id != None and files is not None):
+        if (layer_id > 0 and files is not None):
 
             file_ext = ['shp', 'dbf', 'prj', 'shx', 'kml', 'json']
 
@@ -152,7 +160,6 @@ def upload_layer_files(request, layer_id=None, *args, **kwargs):
     else:
         response = {'status': 0}
         return JsonResponse(response)
-
 
 def esriprj2standards(shapeprj_path):
 
@@ -192,8 +199,7 @@ def repjoction_shpfile(path, prj_epsg, shp_file):
         driver.DeleteDataSource(outputShapefile)
 
     outDataSet = driver.CreateDataSource(outputShapefile)
-    outLayer = outDataSet.CreateLayer(
-        "rep_" + shp_name, geom_type=ogr.wkbMultiPolygon)
+    outLayer = outDataSet.CreateLayer("rep_" + shp_name, geom_type=ogr.wkbMultiPolygon)
 
     # add fields
     inLayerDefn = inLayer.GetLayerDefn()
@@ -217,8 +223,7 @@ def repjoction_shpfile(path, prj_epsg, shp_file):
         # set the geometry and attribute
         outFeature.SetGeometry(geom)
         for i in range(0, outLayerDefn.GetFieldCount()):
-            outFeature.SetField(outLayerDefn.GetFieldDefn(
-                i).GetNameRef(), inFeature.GetField(i))
+            outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i))
         # add the feature to the shapefile
         outLayer.CreateFeature(outFeature)
         # dereference the features and get the next input feature
@@ -244,9 +249,8 @@ def create_prj(file_path):
 
     return True
 
-
 def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
-    if layerId != None:
+    if layerId>0:
         media_root = settings.MEDIA_ROOT
         file_count = 0
         kml_file_count = 0
@@ -258,8 +262,7 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
         kml_file = ''
         json_file = ''
         fileName = ''
-        fullpath = os.path.abspath(os.path.join(os.path.dirname(
-            media_root), 'media/layers/' + str(layerId) + '/'))
+        fullpath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/layers/' + str(layerId) + '/'))
 
         if os.path.exists(fullpath) == True:
 
@@ -289,15 +292,13 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
                     json_file_count += 1
                     file_type = 'JSON'
 
-            if (file_count == 4 and shp_file != '' and file_type == 'SHP' and prj_file != ''):
+
+            if (file_count == 4 and shp_file != '' and file_type == 'SHP' and prj_file !=''):
 
                 getLayer = Layerfiles.objects.get(pk=layerId)
-                new_table_name = 'z_layer_' + \
-                    str(layerId) + '_' + file_type.lower()
-                final_shp_path = os.path.abspath(
-                    os.path.join(fullpath, shp_file))
-                final_prj_path = os.path.abspath(
-                    os.path.join(fullpath, prj_file))
+                new_table_name = 'z_layer_'+str(layerId) + '_' + file_type.lower()
+                final_shp_path = os.path.abspath(os.path.join(fullpath, shp_file))
+                final_prj_path = os.path.abspath(os.path.join(fullpath, prj_file))
 
                 # [START] - Reproject
                 old_shpfile = ''
@@ -314,7 +315,7 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
                     subprocess.call(shell, shell=True)
 
                     # [START] - Remove old files
-                    remove_filePath = r'' + fullpath + '/' + old_shpfile+'.*'
+                    remove_filePath = r''+ fullpath + '/' + old_shpfile+'.*'
                     fileList = glob.glob(remove_filePath)
                     for filePath in fileList:
                         os.remove(filePath)
@@ -323,11 +324,13 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
                     shp_path = reprojectPath
                     shp_file = rep_shpfile
 
+
                 else:
                     shp_path = final_shp_path
                     shp_file = shp_file
 
                 # [END] - Reproject
+
 
                 # [START] - Get column name from file & Insert to Table
 
@@ -347,12 +350,13 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
                     columnsName.save()
 
                     columns.append(fdefn.name)
-
-                shell = 'shp2pgsql -I -s 4326 ' + shp_path + ' public.' + new_table_name + \
-                    ' | psql -U my_geoedge_user -d my_geoedge_map -h localhost'
-                subprocess.run(shell, shell=True)
+                db = settings.DATABASES
+                default_db = db['default']
+                shell = 'shp2pgsql -I -s 4326 ' + shp_path + ' public.' + new_table_name + ' | psql -U '+default_db['USER']+' -d '+default_db['NAME']+''
+                subprocess.call(shell, shell=True)
 
                 # [END] - Get column name from file & Insert to Table
+
 
                 getLayer.layerfiles_status = 1
                 getLayer.layer_type = file_type
@@ -362,8 +366,7 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
 
                 # For Group
                 if int(groupId) > 0:
-                    group_layer = Group_layerfiles.objects.get(
-                        group_id=groupId, layerfiles_id=layerId)
+                    group_layer = Group_layerfiles.objects.get(group_id=groupId, layerfiles_id=layerId)
                     group_layer.layer_type = file_type
                     group_layer.layerfiles_status = 1
                     group_layer.save()
@@ -371,15 +374,15 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
                     layerName = group_layer.layer_name
                 # /For Group
 
-                isExistGroup = Group_layerfiles.objects.filter(
-                    layerfiles_id=layerId).exists()
+                isExistGroup = Group_layerfiles.objects.filter(layerfiles_id=layerId).exists()
                 if (isExistGroup):
-                    getGroup = Group_layerfiles.objects.get(
-                        layerfiles_id=layerId)
+                    getGroup = Group_layerfiles.objects.get(layerfiles_id=layerId)
                     getGroup.layerfiles_status = 1
                     getGroup.save()
 
                 layer_file = shp_file
+
+
 
             elif (kml_file_count == 1 and kml_file != '' and file_type == 'KML'):
 
@@ -391,8 +394,7 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
 
                 # For Group
                 if int(groupId) > 0:
-                    group_layer = Group_layerfiles.objects.get(
-                        group_id=groupId, layerfiles_id=layerId)
+                    group_layer = Group_layerfiles.objects.get(group_id=groupId, layerfiles_id=layerId)
                     group_layer.layer_type = file_type
                     group_layer.layerfiles_status = 1
                     group_layer.save()
@@ -412,8 +414,7 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
 
                 # For Group
                 if int(groupId) > 0:
-                    group_layer = Group_layerfiles.objects.get(
-                        group_id=groupId, layerfiles_id=layerId)
+                    group_layer = Group_layerfiles.objects.get(group_id=groupId, layerfiles_id=layerId)
                     group_layer.layer_type = file_type
                     group_layer.layerfiles_status = 1
                     group_layer.save()
@@ -423,20 +424,17 @@ def load_layer_files(request, layerId=None, groupId=None, *args, **kwargs):
 
                 layer_file = json_file
 
-            response = {'status': 1, 'layer_type': file_type,
-                        'layer_file': layer_file, 'layer_name': layerName}
+            response = {'status': 1, 'layer_type':file_type, 'layer_file':layer_file, 'layer_name':layerName}
             return JsonResponse(response)
 
         else:
 
-            response = {'status': 0, 'layer_type': '',
-                        'error': 'Not file or directory exist', 'layer_file': '', 'layer_name': ''}
+            response = {'status': 0, 'layer_type': '', 'error':'Not file or directory exist', 'layer_file':'', 'layer_name':''}
             return JsonResponse(response)
 
     else:
 
-        response = {'status': 0, 'layer_type': '',
-                    'error': 'Layer ID is invaild.', 'layer_file': '', 'layer_name': ''}
+        response = {'status': 0, 'layer_type':'', 'error':'Layer ID is invaild.', 'layer_file':'', 'layer_name':''}
         return JsonResponse(response)
 
 
@@ -446,23 +444,22 @@ def layer_data(request, layer_id=None, groupId=None, *args, **kwargs):
     nowTime = datetime.now()
     dateTime = nowTime.strftime("%Y%m%d%H%M")
 
+
     media_root = settings.MEDIA_ROOT
-    fullpath = os.path.abspath(os.path.join(
-        os.path.dirname(media_root), 'media/loading/'))
-    geojson_file = str(dateTime)+'_'+str(current_user.pk) + \
-        '_'+str(layer_id)+'.json'
+    fullpath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/loading/'))
+    geojson_file = str(dateTime)+'_'+str(current_user.pk)+'_'+str(layer_id)+'.json'
     table_name = 'z_layer_'+str(layer_id)+'_shp'
     geojsonPath = r'' + fullpath + '/' + geojson_file
 
-    shell = 'ogr2ogr -f GeoJSON -t_srs EPSG:4326 ' + geojsonPath + \
-        ' "PG:dbname=my_geoedge_map user=my_geoedge_user host=localhost" -sql "select * from public.' + table_name + '"'
-    subprocess.run(shell, shell=True)
+    db = settings.DATABASES
+    default_db = db['default']
+    shell = 'ogr2ogr -f GeoJSON -t_srs EPSG:4326 '+geojsonPath+' "PG:dbname='+default_db['NAME']+' user='+default_db['USER']+' password='+default_db['PASSWORD']+'" -sql "select * from public.'+table_name+'"'
+    subprocess.call(shell, shell=True)
 
     file_exists = os.path.isfile(geojsonPath)
 
     if file_exists:
-        response = {'status': 1, 'geojson_file': geojson_file,
-                    'file_path': 'media/loading/'}
+        response = {'status': 1, 'geojson_file': geojson_file, 'file_path': 'media/loading/'}
     else:
         response = {'status': 0, 'geojson_file': '', 'file_path': ''}
 
@@ -476,8 +473,7 @@ def remove_file(request):
         file = request.POST['filename']
 
         media_root = settings.MEDIA_ROOT
-        fullpath = os.path.abspath(os.path.join(
-            os.path.dirname(media_root), fileDir))
+        fullpath = os.path.abspath(os.path.join(os.path.dirname(media_root), fileDir))
         filePath = r'' + fullpath + '/' + file
 
         file_exists = os.path.isfile(filePath)
@@ -496,61 +492,50 @@ def remove_file(request):
 
     return JsonResponse(response, content_type='json')
 
-
 def map_count(request):
 
     current_user = request.user
     if current_user.is_active:
 
-        map_count = Layerfiles.objects.filter(
-            layerfiles_status=1, user_id=current_user.pk).count()
-        layer_count = Layer_draw.objects.filter(
-            layerdraw_status=1, user_id=current_user.pk).count()
+        map_count = Layerfiles.objects.filter(layerfiles_status=1, user_id=current_user.pk).count()
+        layer_count = Layer_draw.objects.filter(layerdraw_status=1, user_id=current_user.pk).count()
 
-        response = {'status': 1, 'map_count': map_count,
-                    'layer_count': layer_count}
+        response = {'status': 1, 'map_count': map_count, 'layer_count': layer_count}
         return JsonResponse(response, content_type='json')
-
 
 def map_group_count(request, groupId=None,):
 
     if int(groupId) > 0:
 
-        map_count = Group_layerfiles.objects.filter(
-            group_id=groupId, layerfiles_status=1).count()
-        layer_count = Group_layer_draw.objects.filter(
-            group_id=groupId, layerdraw_status=1).count()
+        map_count = Group_layerfiles.objects.filter(group_id=groupId, layerfiles_status=1).count()
+        layer_count = Group_layer_draw.objects.filter(group_id=groupId, layerdraw_status=1).count()
 
-        response = {'status': 1, 'map_count': map_count,
-                    'layer_count': layer_count}
+        response = {'status': 1, 'map_count': map_count, 'layer_count': layer_count}
         return JsonResponse(response, content_type='json')
-
 
 def lastest_map(request, groupId=None, *args, **kwargs):
     current_user = request.user
     if current_user.is_active:
-        map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(
-            layer_status='public')).order_by('-updated_at')[0:25]
-        draw_layer = Layer_draw.objects.filter(Q(user_id=current_user.pk) | Q(
-            layer_status='public')).order_by('-updated_at')[0:25]
+        map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(layer_status='public')).order_by('-updated_at')[0:25]
+        draw_layer = Layer_draw.objects.filter(Q(user_id=current_user.pk) | Q(layer_status='public')).order_by('-updated_at')[0:25]
 
         lastestMaps_tuples = []
-        nowTime = datetime.now().replace(tzinfo=None)
+        nowTime = datetime.now()
         nowTime = nowTime.replace(microsecond=0)
+
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
                 if mapLayer.layerfiles_status == 1:
 
-                    lastTime = mapLayer.updated_at.replace(tzinfo=None)
+                    lastTime = mapLayer.updated_at
                     diff = nowTime - lastTime
                     day = diff.days
                     seconds = diff.seconds
                     tot_seconds = seconds + day*(24*3600)
                     link = '/map/'+str(mapLayer.pk)+'/map'
 
-                    lastestMaps_tuples.append(
-                        (tot_seconds, mapLayer.pk, mapLayer.layer_name, 'map', link))
+                    lastestMaps_tuples.append((tot_seconds, mapLayer.pk, mapLayer.layer_name, 'map', link))
 
         if len(draw_layer) > 0:
             for drawLayer in draw_layer:
@@ -562,14 +547,11 @@ def lastest_map(request, groupId=None, *args, **kwargs):
                     tot_seconds = seconds + day * (24 * 3600)
                     link = '/map/' + str(drawLayer.pk) + '/layer'
 
-                    lastestMaps_tuples.append(
-                        (tot_seconds, drawLayer.pk, drawLayer.layer_name, 'layer', link))
+                    lastestMaps_tuples.append((tot_seconds, drawLayer.pk, drawLayer.layer_name, 'layer', link))
 
         if (int(groupId) > 0):
-            mapgroup_layer = Group_layerfiles.objects.filter(
-                Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
-            drawgroup_layer = Group_layer_draw.objects.filter(
-                Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
+            mapgroup_layer = Group_layerfiles.objects.filter(Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
+            drawgroup_layer = Group_layer_draw.objects.filter(Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
 
             if len(mapgroup_layer) > 0:
                 for mapgrouplayer in mapgroup_layer:
@@ -580,12 +562,9 @@ def lastest_map(request, groupId=None, *args, **kwargs):
                         day = diff.days
                         seconds = diff.seconds
                         tot_seconds = seconds + day * (24 * 3600)
-                        link = '/map/group/' + \
-                            str(mapgrouplayer.group_id) + \
-                            '/' + str(mapLayer.pk) + '/map'
+                        link = '/map/group/'+str(mapgrouplayer.group_id)+'/'+ str(mapLayer.pk) + '/map'
 
-                        lastestMaps_tuples.append(
-                            (tot_seconds, mapgrouplayer.pk, mapgrouplayer.layer_name, 'map', link))
+                        lastestMaps_tuples.append((tot_seconds, mapgrouplayer.pk, mapgrouplayer.layer_name, 'map', link))
 
             if len(drawgroup_layer) > 0:
                 for drawgroupLayer in drawgroup_layer:
@@ -595,15 +574,12 @@ def lastest_map(request, groupId=None, *args, **kwargs):
                         day = diff.days
                         seconds = diff.seconds
                         tot_seconds = seconds + day * (24 * 3600)
-                        link = '/map/group/' + \
-                            str(drawgroupLayer.group_id) + '/' + \
-                            str(drawgroupLayer.pk) + '/layer'
+                        link = '/map/group/' + str(drawgroupLayer.group_id) + '/' + str(drawgroupLayer.pk) + '/layer'
 
-                        lastestMaps_tuples.append(
-                            (tot_seconds, drawgroupLayer.pk, drawgroupLayer.layer_name, 'layer', link))
+                        lastestMaps_tuples.append((tot_seconds, drawgroupLayer.pk, drawgroupLayer.layer_name, 'layer', link))
 
-        lastestMaps_short = sorted(
-            lastestMaps_tuples, key=lambda lastestMaps: lastestMaps[0])
+
+        lastestMaps_short = sorted(lastestMaps_tuples, key=lambda lastestMaps: lastestMaps[0])
         response = {'status': 1, 'lastestMaps': lastestMaps_short}
         return JsonResponse(response, content_type='json')
 
@@ -611,82 +587,68 @@ def lastest_map(request, groupId=None, *args, **kwargs):
 def lastest_News(request, groupId=None, *args, **kwargs):
     current_user = request.user
     if current_user.is_active:
-        map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(
-            layer_status='public')).order_by('-updated_at')[0:25]
-        draw_layer = Layer_draw.objects.filter(Q(user_id=current_user.pk) | Q(
-            layer_status='public')).order_by('-updated_at')[0:25]
+        map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(layer_status='public')).order_by('-updated_at')[0:25]
+        draw_layer = Layer_draw.objects.filter(Q(user_id=current_user.pk) | Q(layer_status='public')).order_by('-updated_at')[0:25]
 
         lastestNews_tuples = []
-        nowTime = datetime.now().replace(tzinfo=None)
+        nowTime = datetime.now()
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
                 if mapLayer.layerfiles_status == 1 and mapLayer.layer_descri != '':
-                    lastTime = mapLayer.updated_at.replace(tzinfo=None)
+                    lastTime = mapLayer.updated_at
                     diff = nowTime - lastTime
                     day = diff.days
                     seconds = diff.seconds
                     tot_seconds = seconds + day * (24 * 3600)
                     link = '/map/' + str(mapLayer.pk) + '/map'
 
-                    lastestNews_tuples.append(
-                        (tot_seconds, mapLayer.pk, mapLayer.layer_name, 'map', mapLayer.layer_descri, link))
+                    lastestNews_tuples.append((tot_seconds, mapLayer.pk, mapLayer.layer_name, 'map', mapLayer.layer_descri, link))
 
         if len(draw_layer) > 0:
             for drawLayer in draw_layer:
                 if drawLayer.layerdraw_status == 1 and drawLayer.layer_descri != '':
-                    lastTime = mapLayer.updated_at.replace(tzinfo=None)
+                    lastTime = mapLayer.updated_at
                     diff = nowTime - lastTime
                     day = diff.days
                     seconds = diff.seconds
                     tot_seconds = seconds + day * (24 * 3600)
                     link = '/map/' + str(drawLayer.pk) + '/layer'
 
-                    lastestNews_tuples.append(
-                        (tot_seconds, drawLayer.pk, drawLayer.layer_name, 'layer', drawLayer.layer_descri, link))
+                    lastestNews_tuples.append((tot_seconds, drawLayer.pk, drawLayer.layer_name, 'layer', drawLayer.layer_descri, link))
 
         if (int(groupId) > 0):
-            mapgroup_layer = Group_layerfiles.objects.filter(
-                Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
-            drawgroup_layer = Group_layer_draw.objects.filter(
-                Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
+            mapgroup_layer = Group_layerfiles.objects.filter(Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
+            drawgroup_layer = Group_layer_draw.objects.filter(Q(group_id=groupId) | Q(layer_status='public')).order_by('-updated_at')[0:25]
 
             if len(mapgroup_layer) > 0:
                 for mapgrouplayer in mapgroup_layer:
                     if mapgrouplayer.layerfiles_status == 1 and mapgrouplayer.layer_descri != '' and mapgrouplayer.user_id != current_user.pk:
 
-                        lastTime = mapgrouplayer.updated_at.replace(tzinfo=None)
+                        lastTime = mapgrouplayer.updated_at
                         diff = nowTime - lastTime
                         day = diff.days
                         seconds = diff.seconds
                         tot_seconds = seconds + day * (24 * 3600)
-                        link = '/map/group/' + \
-                            str(mapgrouplayer.group_id) + \
-                            '/' + str(mapLayer.pk) + '/map'
+                        link = '/map/group/'+str(mapgrouplayer.group_id)+'/'+ str(mapLayer.pk) + '/map'
 
-                        lastestNews_tuples.append(
-                            (tot_seconds, mapgrouplayer.pk, mapgrouplayer.layer_name, 'map', mapgrouplayer.layer_descri, link))
+                        lastestNews_tuples.append((tot_seconds, mapgrouplayer.pk, mapgrouplayer.layer_name, 'map', mapgrouplayer.layer_descri, link))
 
             if len(drawgroup_layer) > 0:
                 for drawgroupLayer in drawgroup_layer:
                     if drawgroupLayer.layerdraw_status == 1 and drawgroupLayer.layer_descri != '' and drawgroupLayer.user_id != current_user.pk:
-                        lastTime = drawgroupLayer.updated_at.replace(tzinfo=None)
+                        lastTime = drawgroupLayer.updated_at
                         diff = nowTime - lastTime
                         day = diff.days
                         seconds = diff.seconds
                         tot_seconds = seconds + day * (24 * 3600)
-                        link = '/map/group/' + \
-                            str(drawgroupLayer.group_id) + '/' + \
-                            str(drawgroupLayer.pk) + '/layer'
+                        link = '/map/group/' + str(drawgroupLayer.group_id) + '/' + str(drawgroupLayer.pk) + '/layer'
 
-                        lastestNews_tuples.append(
-                            (tot_seconds, drawgroupLayer.pk, drawgroupLayer.layer_name, 'layer', drawgroupLayer.layer_descri, link))
+                        lastestNews_tuples.append((tot_seconds, drawgroupLayer.pk, drawgroupLayer.layer_name, 'layer', drawgroupLayer.layer_descri, link))
 
-        lastestNews_short = sorted(
-            lastestNews_tuples, key=lambda lastestNews: lastestNews[0])
+        lastestNews_short = sorted(lastestNews_tuples, key=lambda lastestNews: lastestNews[0])
         response = {'status': 1, 'lastestNews': lastestNews_short}
         return JsonResponse(response, content_type='json')
-
 
 def get_layer_data(request, map=None, layer_type=None, *args, **kwargs):
 
@@ -699,22 +661,18 @@ def get_layer_data(request, map=None, layer_type=None, *args, **kwargs):
 
             if layer.layerfiles_status == 1 and layer.layer_type == 'KML':
 
-                layer_file = Layerfile_attachments.objects.get(
-                    layerfiles_id=int(map), file_name__contains='.kml')
+                layer_file = Layerfile_attachments.objects.get(layerfiles_id=int(map), file_name__contains='.kml')
 
                 layer_filename = layer_file.file_name
 
-                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type,
-                           'filename': layer_filename, 'layer_name': layer_name, 'layer_description': layer_desc}
+                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename':layer_filename, 'layer_name':layer_name, 'layer_description':layer_desc}
 
             elif layer.layerfiles_status == 1 and layer.layer_type == 'SHP':
 
-                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type,
-                           'filename': '', 'layer_name': layer_name, 'layer_description': layer_desc}
+                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename': '', 'layer_name': layer_name, 'layer_description':layer_desc}
 
             else:
-                context = {'layer_status': 0, 'map_id': map,
-                           'map_type': layer_type, 'layer_file_type': ''}
+                context = {'layer_status': 0, 'map_id': map, 'map_type': layer_type, 'layer_file_type': ''}
 
         if layer_type == 'layer':
             layer_geojson = Layer_draw.objects.get(pk=int(map))
@@ -722,14 +680,11 @@ def get_layer_data(request, map=None, layer_type=None, *args, **kwargs):
             layer_filename = layer_geojson.layer_file
             layer_desc = layer_geojson.layer_descri
             layer_file_type = 'JEOJSON'
-            context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type,
-                       'filename': layer_filename, 'layer_name': layer_name, 'layer_description': layer_desc}
+            context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename': layer_filename, 'layer_name': layer_name, 'layer_description':layer_desc}
     else:
-        context = {'layer_status': 0, 'map_id': map,
-                   'map_type': layer_type, 'layer_file_type': ''}
+        context = {'layer_status': 0, 'map_id': map, 'map_type': layer_type, 'layer_file_type': ''}
 
     return render(request, 'map/index.html', context)
-
 
 def get_group_data(request, gid=None, map=None, layer_type=None, *args, **kwargs):
 
@@ -743,22 +698,18 @@ def get_group_data(request, gid=None, map=None, layer_type=None, *args, **kwargs
 
             if group_layer.layerfiles_status == 1 and group_layer.layer_type == 'KML':
 
-                layer_file = Layerfile_attachments.objects.get(
-                    layerfiles_id=layerID, file_name__contains='.kml')
+                layer_file = Layerfile_attachments.objects.get(layerfiles_id=layerID, file_name__contains='.kml')
 
                 layer_filename = layer_file.file_name
 
-                context = {'layer_status': 1, 'gid': gid, 'map_id': layerID, 'map_type': layer_type, 'layer_file_type': layer_file_type,
-                           'filename': layer_filename, 'layer_name': layer_name, 'layer_description': layer_desc}
+                context = {'layer_status': 1, 'gid':gid, 'map_id': layerID, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename':layer_filename, 'layer_name':layer_name, 'layer_description':layer_desc}
 
             elif group_layer.layerfiles_status == 1 and group_layer.layer_type == 'SHP':
 
-                context = {'layer_status': 1, 'gid': gid, 'map': layerID, 'map_type': layer_type,
-                           'layer_file_type': layer_file_type, 'filename': '', 'layer_name': layer_name, 'layer_description': layer_desc}
+                context = {'layer_status': 1, 'gid':gid, 'map': layerID, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename': '', 'layer_name': layer_name, 'layer_description':layer_desc}
 
             else:
-                context = {'layer_status': 0, 'gid': gid, 'map': layerID,
-                           'map_type': layer_type, 'layer_file_type': ''}
+                context = {'layer_status': 0, 'gid':gid, 'map': layerID, 'map_type': layer_type, 'layer_file_type': ''}
 
         if layer_type == 'layer':
             group_layer_geojson = Group_layer_draw.objects.get(pk=int(map))
@@ -768,83 +719,72 @@ def get_group_data(request, gid=None, map=None, layer_type=None, *args, **kwargs
             layer_desc = group_layer.layer_descri
             layer_file_type = 'JEOJSON'
 
-            context = {'layer_status': 1, 'gid': gid, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type,
-                       'filename': layer_filename, 'layer_name': layer_name, 'layer_description': layer_desc}
+            context = {'layer_status': 1, 'gid':gid, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename': layer_filename, 'layer_name': layer_name, 'layer_description':layer_desc}
     else:
-        context = {'layer_status': 0, 'gid': gid, 'map_id': map,
-                   'map_type': layer_type, 'layer_file_type': ''}
+        context = {'layer_status': 0, 'gid':gid, 'map_id': map, 'map_type': layer_type, 'layer_file_type': ''}
 
     return render(request, 'map/index.html', context)
 
-
 def get_lastest_layer_data(request, groupId=None, *args, **kwargs):
-    current_user = request.user
-    lastestData_tuples = []
-    layerfileName = ''
-    lastestData = ''
-    layer_description = ''
-    nowTime = datetime.now().replace(tzinfo=None)
+        current_user = request.user
+        lastestData_tuples = []
+        layerfileName = ''
+        lastestData = ''
+        layer_description = ''
+        nowTime = datetime.now()
 
-    if(int(groupId) > 0):
-        layer_map = Group_layerfiles.objects.filter(
-            group_id=groupId, layerfiles_status=1).order_by("-pk")
-        layer_draw = Group_layer_draw.objects.filter(
-            group_id=groupId, layerdraw_status=1).order_by("-pk")
-    else:
-        layer_map = Layerfiles.objects.filter(
-            user_id=current_user.pk, layerfiles_status=1).order_by("-pk")
-        layer_draw = Layer_draw.objects.filter(
-            user_id=current_user.pk, layerdraw_status=1).order_by("-pk")
+        if(int(groupId)>0):
+            layer_map = Group_layerfiles.objects.filter(group_id=groupId, layerfiles_status=1).order_by("-pk")
+            layer_draw = Group_layer_draw.objects.filter(group_id=groupId, layerdraw_status=1).order_by("-pk")
+        else:
+            layer_map = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status =1).order_by("-pk")
+            layer_draw = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1).order_by("-pk")
 
-    if len(layer_map) > 0:
-        lastTime = layer_map[0].updated_at.replace(tzinfo=None)
-        layer_description = layer_map[0].layer_descri
-        diff = nowTime - lastTime
-        seconds = diff.seconds
-        layerID = layer_map[0].pk
-        group_id = 0
+        if len(layer_map) > 0:
+            lastTime = layer_map[0].updated_at
+            layer_description = layer_map[0].layer_descri
+            diff = nowTime - lastTime
+            seconds = diff.seconds
+            layerID = layer_map[0].pk
+            group_id = 0
 
-        if (int(groupId) > 0):
-            layerID = layer_map[0].layerfiles_id
-            group_id = layer_map[0].pk
+            if (int(groupId) > 0):
+                layerID = layer_map[0].layerfiles_id
+                group_id = layer_map[0].pk
 
-        if layer_map[0].layer_type == 'KML':
-            layer_file = Layerfile_attachments.objects.get(
-                layerfiles_id=layerID, file_name__contains='.kml')
-            layerfileName = layer_file.file_name
+            if layer_map[0].layer_type == 'KML':
+                layer_file = Layerfile_attachments.objects.get(layerfiles_id=layerID, file_name__contains='.kml')
+                layerfileName = layer_file.file_name
 
-        lastestData_tuples.append(
-            (seconds, layerID, layer_map[0].layer_name, 'map', layer_map[0].layer_type, layerfileName, layer_description, group_id))
 
-    if len(layer_draw) > 0:
-        lastTime = layer_draw[0].updated_at
-        layer_description = layer_draw[0].layer_descri
-        diff = nowTime - lastTime
-        seconds = diff.seconds
-        layerfileName = layer_draw[0].layer_file
-        layerID = layer_draw[0].pk
-        group_id = 0
+            lastestData_tuples.append((seconds, layerID, layer_map[0].layer_name, 'map', layer_map[0].layer_type, layerfileName, layer_description, group_id))
 
-        if (int(groupId) > 0):
-            # layerID = layer_draw[0].layer_draw_id
+        if len(layer_draw) > 0:
+            lastTime = layer_draw[0].updated_at
+            layer_description = layer_draw[0].layer_descri
+            diff = nowTime - lastTime
+            seconds = diff.seconds
+            layerfileName = layer_draw[0].layer_file
             layerID = layer_draw[0].pk
+            group_id = 0
 
-        lastestData_tuples.append(
-            (seconds, layerID, layer_draw[0].layer_name, 'layer', 'geojson', layerfileName, layer_description, groupId))
+            if (int(groupId) > 0):
+                # layerID = layer_draw[0].layer_draw_id
+                layerID = layer_draw[0].pk
 
-    if len(lastestData_tuples) > 0:
-        lastestData_tuples_short = sorted(
-            lastestData_tuples, key=lambda lastestData: lastestData[0])
+            lastestData_tuples.append((seconds, layerID, layer_draw[0].layer_name, 'layer', 'geojson', layerfileName, layer_description, groupId))
 
-        lastestData = lastestData_tuples_short[0]
+        if len(lastestData_tuples) > 0:
+            lastestData_tuples_short = sorted(lastestData_tuples, key=lambda lastestData: lastestData[0])
 
-        response = {'status': 1, 'lastestData': lastestData}
+            lastestData = lastestData_tuples_short[0];
 
-    else:
-        response = {'status': 0, 'lastestData': ''}
+            response = {'status': 1, 'lastestData': lastestData}
 
-    return JsonResponse(response, content_type='json')
+        else:
+            response = {'status': 0, 'lastestData': ''}
 
+        return JsonResponse(response, content_type='json')
 
 @csrf_exempt
 def save_as_new_drawing(request):
@@ -857,6 +797,7 @@ def save_as_new_drawing(request):
         nowTime = datetime.now()
         current_user = request.user
         group_layerfileId = ''
+
 
         if (layer_name != '' and layer_status != ''):
 
@@ -893,8 +834,7 @@ def save_as_new_drawing(request):
                 add_layer.save()
 
             # /For Group
-            response = {'status': 1, 'drawLayerId': layerfileId,
-                        'group_drawLayerId': group_layerfileId}
+            response = {'status': 1, 'drawLayerId':layerfileId, 'group_drawLayerId':group_layerfileId}
 
         else:
             response = {'status': 0}
@@ -938,11 +878,9 @@ def save_drawing_file(request):
                 add_layerfile.save()
                 layerfile_id = add_layerfile.pk
 
-                fileName = 'drawmapdata_' + \
-                    str(layerfileID)+'_'+str(layerfile_id)+'.json'
+                fileName = 'drawmapdata_'+str(layerfileID)+'_'+str(layerfile_id)+'.json'
                 file_path = 'media/draw_layers/'+fileName
-                full_filepath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), file_path))
+                full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), file_path))
 
                 jsonData = json.loads(geojsonData)
                 with open(full_filepath, 'w') as outfile:
@@ -950,15 +888,14 @@ def save_drawing_file(request):
 
                 add_layerfile.layer_file = fileName
                 add_layerfile.layerdrawfile_status = 1
-                add_layerfile.updated_at = nowTime.strftime(
-                    "%Y-%m-%d %H:%M:%S")
+                add_layerfile.updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
                 add_layerfile.save()
 
                 # For Group
                 if groupFildID != '':
                     add_group_layerfile = Group_layer_drawfile(
                         group_id=groupID,
-                        grouplayer_draw_id=groupFildID,
+                        grouplayer_draw_id = groupFildID,
                         layer_name=layer_name,
                         layer_status=layer_status,
                         layerdraw_status=0,
@@ -972,27 +909,22 @@ def save_drawing_file(request):
                     add_group_layerfile.save()
                     add_group_layerfile = add_group_layerfile.pk
 
-                    group_fileName = 'group_drawmapdata_' + \
-                        str(groupID)+'_'+str(add_group_layerfile)+'.json'
+                    group_fileName = 'group_drawmapdata_'+str(groupID)+'_'+str(add_group_layerfile)+'.json'
                     group_file_path = 'media/draw_layers/' + group_fileName
-                    group_full_filepath = os.path.abspath(os.path.join(
-                        os.path.dirname(media_root), group_file_path))
+                    group_full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), group_file_path))
 
                     group_jsonData = json.loads(geojsonData)
                     with open(group_full_filepath, 'w') as outfile:
                         json.dump(group_jsonData, outfile)
 
-                    update_group_layerfile = Group_layer_drawfile.objects.get(
-                        pk=add_group_layerfile, group_id=groupID)
+                    update_group_layerfile = Group_layer_drawfile.objects.get(pk=add_group_layerfile, group_id=groupID)
                     update_group_layerfile.layer_file = group_fileName
                     update_group_layerfile.layerdraw_status = 1
-                    update_group_layerfile.updated_at = nowTime.strftime(
-                        "%Y-%m-%d %H:%M:%S")
+                    update_group_layerfile.updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
                     update_group_layerfile.save()
 
                 # /For Group
-                response = {'status': 1, 'drawLayerId': layerfile_id,
-                            'filepath': file_path, 'group_drawLayerId': groupFildID}
+                response = {'status': 1, 'drawLayerId':layerfile_id, 'filepath': file_path, 'group_drawLayerId':groupFildID}
 
             else:
                 response = {'status': 0, 'filepath': ""}
@@ -1020,12 +952,10 @@ def save_new_drawing(request):
 
         if geojsonData != '':
             if groupID != '':
-                groupFile = Group_layer_drawfile.objects.get(
-                    pk=fileId, group_id=groupID)
+                groupFile = Group_layer_drawfile.objects.get(pk=fileId, group_id=groupID)
                 fileName = groupFile.layer_file
                 file_path = 'media/draw_layers/' + fileName
-                full_filepath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), file_path))
+                full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), file_path))
 
                 jsonData = json.loads(geojsonData)
                 with open(full_filepath, 'w') as outfile:
@@ -1044,8 +974,7 @@ def save_new_drawing(request):
                 layerFile = Layer_drawfile.objects.get(pk=fileId)
                 fileName = layerFile.layer_file
                 file_path = 'media/draw_layers/' + fileName
-                full_filepath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), file_path))
+                full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), file_path))
 
                 layerFile.layerdraw_status = 1
                 layerFile.layer_order = layer_order
@@ -1063,7 +992,6 @@ def save_new_drawing(request):
 
     return JsonResponse(response)
 
-
 def search_layers_list(request, layer_status_type=None, gid=None, **kwargs):
     current_user = request.user
     lists_tuples = []
@@ -1071,22 +999,17 @@ def search_layers_list(request, layer_status_type=None, gid=None, **kwargs):
     if (layer_status_type == 'user' or layer_status_type == 'public' or layer_status_type == 'all'):
 
         if (layer_status_type == 'user'):
-            map_layer = Layerfiles.objects.filter(
-                user_id=current_user.pk).order_by('layer_name')
-            draw_layer = Layer_draw.objects.filter(
-                user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
+            map_layer = Layerfiles.objects.filter(user_id=current_user.pk).order_by('layer_name')
+            draw_layer = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
 
         if (layer_status_type == 'public'):
-            map_layer = Layerfiles.objects.filter(layer_status='public').exclude(
-                user_id=current_user.pk).order_by('layer_name')
-            draw_layer = Layer_draw.objects.filter(layer_status='public').exclude(
-                user_id=current_user.pk).order_by('layer_name')
+            map_layer = Layerfiles.objects.filter(layer_status='public').exclude(user_id=current_user.pk).order_by('layer_name')
+            draw_layer = Layer_draw.objects.filter(layer_status='public').exclude(user_id=current_user.pk).order_by('layer_name')
 
         if (layer_status_type == 'all'):
-            map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(
-                layer_status='public')).order_by('layer_name')
-            draw_layer = Layer_draw.objects.filter(Q(user_id=current_user.pk) | Q(
-                layer_status='public')).order_by('layer_name')
+            map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(layer_status='public')).order_by('layer_name')
+            draw_layer = Layer_draw.objects.filter(Q(user_id=current_user.pk) | Q(layer_status='public')).order_by('layer_name')
+
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
@@ -1095,23 +1018,19 @@ def search_layers_list(request, layer_status_type=None, gid=None, **kwargs):
                     layerfileName = ''
 
                     if mapLayer.layer_type == 'KML':
-                        layer_file = Layerfile_attachments.objects.get(
-                            layerfiles_id=mapLayer.pk, file_name__contains='.kml')
+                        layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.pk, file_name__contains='.kml')
                         layerfileName = layer_file.file_name
 
-                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri,
-                                        'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'user', 'group_id': ''})
+                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'user', 'group_id': ''})
 
         if len(draw_layer) > 0:
             for drawLayer in draw_layer:
                 if (drawLayer.layerdraw_status == 1):
 
-                    drawLayerFiles = Layer_drawfile.objects.filter(
-                        layer_draw_id=drawLayer.pk)
+                    drawLayerFiles = Layer_drawfile.objects.filter(layer_draw_id=drawLayer.pk)
                     if len(drawLayerFiles) > 0:
                         for drawLayerFile in drawLayerFiles:
-                            lists_tuples.append({'layer_name': drawLayerFile.layer_name, 'layerID': drawLayerFile.pk, 'layerType': 'layer',
-                                                'description': '', 'fileType': 'GEOJSON', 'fileName': drawLayerFile.layer_file, 'userType': 'user', 'group_id': ''})
+                            lists_tuples.append({'layer_name': drawLayerFile.layer_name, 'layerID': drawLayerFile.pk,'layerType': 'layer', 'description': '', 'fileType': 'GEOJSON','fileName': drawLayerFile.layer_file, 'userType': 'user', 'group_id': ''})
 
         response = {'status': 1, 'searchList': lists_tuples}
 
@@ -1119,7 +1038,6 @@ def search_layers_list(request, layer_status_type=None, gid=None, **kwargs):
         response = {'status': 0, 'searchList': ''}
 
     return JsonResponse(response, content_type='json')
-
 
 @csrf_exempt
 def searchbox_layers_list(request, gid=None, *args, **kwargs):
@@ -1130,10 +1048,9 @@ def searchbox_layers_list(request, gid=None, *args, **kwargs):
 
         if (int(gid) > 0):
 
-            map_layer = Group_layerfiles.objects.filter(
-                layerfiles_status=1, layer_name__contains=search).order_by('layer_name')
-            draw_layer = Group_layer_drawfile.objects.filter(
-                layer_status=1, layer_name__contains=search).order_by('layer_name')
+
+            map_layer = Group_layerfiles.objects.filter(layerfiles_status=1,layer_name__contains=search).order_by('layer_name')
+            draw_layer = Group_layer_drawfile.objects.filter(layer_status=1,layer_name__contains=search).order_by('layer_name')
 
             if len(map_layer) > 0:
                 for mapLayer in map_layer:
@@ -1142,34 +1059,28 @@ def searchbox_layers_list(request, gid=None, *args, **kwargs):
                         layerfileName = ''
 
                         if mapLayer.layer_type == 'KML':
-                            layer_file = Layerfile_attachments.objects.get(
-                                layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
+                            layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
                             layerfileName = layer_file.file_name
 
-                        lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri,
-                                            'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'group', 'group_id': gid})
+                        lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'group', 'group_id': gid})
+
 
             if len(draw_layer) > 0:
                 for drawLayer in draw_layer:
 
-                    drawLayerFiles = Group_layer_draw.objects.filter(
-                        group_id=gid, pk=drawLayer.grouplayer_draw_id).exists()
+                    drawLayerFiles = Group_layer_draw.objects.filter(group_id=gid, pk=drawLayer.grouplayer_draw_id).exists()
 
                     if(drawLayerFiles):
-                        drawLayerFile = Group_layer_draw.objects.get(
-                            group_id=gid, pk=drawLayer.grouplayer_draw_id)
+                        drawLayerFile = Group_layer_draw.objects.get(group_id=gid, pk=drawLayer.grouplayer_draw_id)
                         if (drawLayerFile.layer_status == 'public'):
-                            lists_tuples.append({'layer_name': drawLayer.layer_name, 'layerID': drawLayer.pk, 'layerType': 'layer', 'description': '',
-                                                'fileType': 'GEOJSON', 'fileName': drawLayer.layer_file, 'userType': 'group', 'group_id': drawLayerFile.group_id})
+                            lists_tuples.append({'layer_name': drawLayer.layer_name, 'layerID': drawLayer.pk,'layerType': 'layer', 'description': '', 'fileType': 'GEOJSON','fileName': drawLayer.layer_file, 'userType': 'group','group_id': drawLayerFile.group_id})
 
             response = {'status': 1, 'searchList': lists_tuples}
 
         else:
 
-            map_layer = Layerfiles.objects.filter(
-                layer_name__contains=search).order_by('layer_name')
-            draw_layer = Layer_drawfile.objects.filter(
-                layer_name__contains=search).order_by('layer_name')
+            map_layer = Layerfiles.objects.filter(layer_name__contains=search).order_by('layer_name')
+            draw_layer = Layer_drawfile.objects.filter(layer_name__contains=search).order_by('layer_name')
 
             if len(map_layer) > 0:
                 for mapLayer in map_layer:
@@ -1178,26 +1089,21 @@ def searchbox_layers_list(request, gid=None, *args, **kwargs):
                         layerfileName = ''
 
                         if mapLayer.layer_type == 'KML':
-                            layer_file = Layerfile_attachments.objects.get(
-                                layerfiles_id=mapLayer.pk, file_name__contains='.kml')
+                            layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.pk, file_name__contains='.kml')
                             layerfileName = layer_file.file_name
 
-                        lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri,
-                                            'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'user', 'group_id': ''})
+                        lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'user', 'group_id': ''})
 
             if len(draw_layer) > 0:
                 for drawLayer in draw_layer:
                     if (drawLayer.layer_status == 1):
 
-                        drawLayerFiles = Layer_draw.objects.filter(
-                            pk=drawLayer.layer_draw_id).exists()
+                        drawLayerFiles = Layer_draw.objects.filter(pk=drawLayer.layer_draw_id).exists()
 
                         if (drawLayerFiles):
-                            drawLayerFile = Layer_draw.objects.get(
-                                pk=drawLayer.layer_draw_id)
+                            drawLayerFile = Layer_draw.objects.get(pk=drawLayer.layer_draw_id)
                             if (drawLayerFile.user_id == current_user.pk or drawLayerFile.layer_status == 'public'):
-                                lists_tuples.append({'layer_name': drawLayer.layer_name, 'layerID': drawLayer.pk, 'layerType': 'layer',
-                                                    'description': '', 'fileType': 'GEOJSON', 'fileName': drawLayer.layer_file, 'userType': 'user', 'group_id': ''})
+                                lists_tuples.append({'layer_name': drawLayer.layer_name, 'layerID': drawLayer.pk,'layerType': 'layer', 'description': '', 'fileType': 'GEOJSON','fileName': drawLayer.layer_file, 'userType': 'user', 'group_id': ''})
 
             response = {'status': 1, 'searchList': lists_tuples}
     else:
@@ -1206,14 +1112,15 @@ def searchbox_layers_list(request, gid=None, *args, **kwargs):
     return JsonResponse(response, content_type='json')
 
 
+
+
 def search_group_layers_list(request, layer_status_type=None, gid=None, *args, **kwargs):
     current_user = request.user
     lists_tuples = []
 
     if (layer_status_type == 'group' and int(gid) > 0):
 
-        map_layer = Group_layerfiles.objects.filter(
-            group_id=gid, layerfiles_status=1).order_by('layer_name')
+        map_layer = Group_layerfiles.objects.filter(group_id=gid, layerfiles_status=1).order_by('layer_name')
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
@@ -1223,32 +1130,26 @@ def search_group_layers_list(request, layer_status_type=None, gid=None, *args, *
                     layerID = mapLayer.layerfiles_id
 
                     if mapLayer.layer_type == 'KML':
-                        layer_file = Layerfile_attachments.objects.get(
-                            layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
+                        layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
                         layerfileName = layer_file.file_name
 
-                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': layerID, 'layerType': 'map', 'description': mapLayer.layer_descri,
-                                        'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'group', 'group_id': mapLayer.group_id})
+                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': layerID, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName,'userType': 'group', 'group_id':mapLayer.group_id})
 
-        draw_layer = Group_layer_draw.objects.filter(
-            group_id=gid, layerdraw_status=1).order_by('layer_name')
+        draw_layer = Group_layer_draw.objects.filter(group_id=gid, layerdraw_status=1).order_by('layer_name')
 
         if len(draw_layer) > 0:
             for drawLayer in draw_layer:
 
-                drawLayerFiles = Group_layer_drawfile.objects.filter(
-                    group_id=gid, grouplayer_draw_id=drawLayer.pk)
+                drawLayerFiles = Group_layer_drawfile.objects.filter(group_id=gid, grouplayer_draw_id=drawLayer.pk)
                 if len(drawLayerFiles) > 0:
                     for drawLayerFile in drawLayerFiles:
-                        lists_tuples.append({'layer_name': drawLayerFile.layer_name, 'layerID': drawLayerFile.pk, 'layerType': 'layer', 'description': '',
-                                            'fileType': 'GEOJSON', 'fileName': drawLayerFile.layer_file, 'userType': 'group', 'group_id': drawLayerFile.group_id})
+                        lists_tuples.append({'layer_name':drawLayerFile.layer_name, 'layerID':drawLayerFile.pk, 'layerType':'layer', 'description':'', 'fileType':'GEOJSON', 'fileName':drawLayerFile.layer_file, 'userType':'group', 'group_id':drawLayerFile.group_id})
 
         response = {'status': 1, 'searchList': lists_tuples}
 
     elif (layer_status_type == 'public_group' and int(gid) > 0):
 
-        map_layer = Group_layerfiles.objects.filter(
-            layer_status='public').exclude(group_id=gid).order_by('layer_name')
+        map_layer = Group_layerfiles.objects.filter(layer_status='public').exclude(group_id=gid).order_by('layer_name')
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
@@ -1258,33 +1159,27 @@ def search_group_layers_list(request, layer_status_type=None, gid=None, *args, *
                     layerID = mapLayer.layerfiles_id
 
                     if mapLayer.layer_type == 'KML':
-                        layer_file = Layerfile_attachments.objects.get(
-                            layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
+                        layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
                         layerfileName = layer_file.file_name
 
-                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': layerID, 'layerType': 'map', 'description': mapLayer.layer_descri,
-                                        'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'group', 'group_id': mapLayer.group_id})
+                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': layerID, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName,'userType': 'group', 'group_id':mapLayer.group_id})
 
-        draw_layer = Group_layer_draw.objects.filter(
-            layer_status='public').exclude(group_id=gid).order_by('layer_name')
+        draw_layer = Group_layer_draw.objects.filter(layer_status='public').exclude(group_id=gid).order_by('layer_name')
 
         if len(draw_layer) > 0:
             for drawLayer in draw_layer:
                 if (drawLayer.layerdraw_status == 1):
 
-                    drawLayerFiles = Group_layer_drawfile.objects.filter(
-                        group_id=gid, grouplayer_draw_id=drawLayer.pk)
+                    drawLayerFiles = Group_layer_drawfile.objects.filter(group_id=gid, grouplayer_draw_id=drawLayer.pk)
                     if len(drawLayerFiles) > 0:
                         for drawLayerFile in drawLayerFiles:
-                            lists_tuples.append({'layer_name': drawLayerFile.layer_name, 'layerID': drawLayerFile.pk, 'layerType': 'layer', 'description': '',
-                                                'fileType': 'GEOJSON', 'fileName': drawLayerFile.layer_file, 'userType': 'group', 'group_id': drawLayerFile.group_id})
+                            lists_tuples.append({'layer_name':drawLayerFile.layer_name, 'layerID':drawLayerFile.pk, 'layerType':'layer', 'description':'', 'fileType':'GEOJSON', 'fileName':drawLayerFile.layer_file, 'userType':'group', 'group_id':drawLayerFile.group_id})
 
         response = {'status': 1, 'searchList': lists_tuples}
 
     elif (layer_status_type == 'all_group' and int(gid) > 0):
 
-        map_layer = Group_layerfiles.objects.filter(
-            Q(group_id=gid) | Q(layer_status='public')).order_by('layer_name')
+        map_layer = Group_layerfiles.objects.filter(Q(group_id=gid) | Q(layer_status='public')).order_by('layer_name')
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
@@ -1294,26 +1189,22 @@ def search_group_layers_list(request, layer_status_type=None, gid=None, *args, *
                     layerID = mapLayer.layerfiles_id
 
                     if mapLayer.layer_type == 'KML':
-                        layer_file = Layerfile_attachments.objects.get(
-                            layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
+                        layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.layerfiles_id, file_name__contains='.kml')
                         layerfileName = layer_file.file_name
 
-                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': layerID, 'layerType': 'map', 'description': mapLayer.layer_descri,
-                                        'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'group', 'group_id': mapLayer.group_id})
+                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': layerID, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName,'userType': 'group', 'group_id':mapLayer.group_id})
 
-        draw_layer = Group_layer_draw.objects.filter(
-            Q(group_id=gid) | Q(layer_status='public')).order_by('layer_name')
+
+        draw_layer = Group_layer_draw.objects.filter(Q(group_id=gid) | Q(layer_status='public')).order_by('layer_name')
 
         if len(draw_layer) > 0:
             for drawLayer in draw_layer:
                 if (drawLayer.layerdraw_status == 1):
 
-                    drawLayerFiles = Group_layer_drawfile.objects.filter(
-                        group_id=gid, grouplayer_draw_id=drawLayer.pk)
+                    drawLayerFiles = Group_layer_drawfile.objects.filter(group_id=gid, grouplayer_draw_id=drawLayer.pk)
                     if len(drawLayerFiles) > 0:
                         for drawLayerFile in drawLayerFiles:
-                            lists_tuples.append({'layer_name': drawLayerFile.layer_name, 'layerID': drawLayerFile.pk, 'layerType': 'layer', 'description': '',
-                                                'fileType': 'GEOJSON', 'fileName': drawLayerFile.layer_file, 'userType': 'group', 'group_id': drawLayerFile.group_id})
+                            lists_tuples.append({'layer_name':drawLayerFile.layer_name, 'layerID':drawLayerFile.pk, 'layerType':'layer', 'description':'', 'fileType':'GEOJSON', 'fileName':drawLayerFile.layer_file, 'userType':'group', 'group_id':drawLayerFile.group_id})
 
         response = {'status': 1, 'searchList': lists_tuples}
 
@@ -1321,7 +1212,6 @@ def search_group_layers_list(request, layer_status_type=None, gid=None, *args, *
         response = {'status': 0, 'searchList': ''}
 
     return JsonResponse(response, content_type='json')
-
 
 @xframe_options_exempt
 def share_layer_data(request, map=None, layer_type=None, *args, **kwargs):
@@ -1334,36 +1224,29 @@ def share_layer_data(request, map=None, layer_type=None, *args, **kwargs):
 
             if layer.layerfiles_status == 1 and layer.layer_type == 'KML':
 
-                layer_file = Layerfile_attachments.objects.get(
-                    layerfiles_id=int(map), file_name__contains='.kml')
+                layer_file = Layerfile_attachments.objects.get(layerfiles_id=int(map), file_name__contains='.kml')
 
                 layer_filename = layer_file.file_name
 
-                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type,
-                           'layer_file_type': layer_file_type, 'filename': layer_filename, 'layer_name': layer_name}
+                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename':layer_filename, 'layer_name':layer_name}
 
             elif layer.layerfiles_status == 1 and layer.layer_type == 'SHP':
 
-                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type,
-                           'layer_file_type': layer_file_type, 'filename': '', 'layer_name': layer_name}
+                context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename': '', 'layer_name': layer_name}
 
             else:
-                context = {'layer_status': 0, 'map_id': map,
-                           'map_type': layer_type, 'layer_file_type': ''}
+                context = {'layer_status': 0, 'map_id': map, 'map_type': layer_type, 'layer_file_type': ''}
 
         if layer_type == 'layer':
             layer_geojson = Layer_draw.objects.get(pk=int(map))
             layer_name = layer_geojson.layer_name
             layer_filename = layer_geojson.layer_file
             layer_file_type = 'JEOJSON'
-            context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type,
-                       'layer_file_type': layer_file_type, 'filename': layer_filename, 'layer_name': layer_name}
+            context = {'layer_status': 1, 'map_id': map, 'map_type': layer_type, 'layer_file_type': layer_file_type, 'filename': layer_filename, 'layer_name': layer_name}
     else:
-        context = {'layer_status': 0, 'map_id': map,
-                   'map_type': layer_type, 'layer_file_type': ''}
+        context = {'layer_status': 0, 'map_id': map, 'map_type': layer_type, 'layer_file_type': ''}
 
     return render(request, 'map/share_map.html', context)
-
 
 @csrf_exempt
 def my_map_data(request):
@@ -1378,25 +1261,19 @@ def my_map_data(request):
         end_row = int(n_page)*int(n_rows)
 
         if(len(request.POST) == 3):
-            map_layer_count = Layerfiles.objects.filter(
-                user_id=current_user.pk, layerfiles_status=1, layer_name__contains=request.POST['search']).count()
-            map_layer = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status=1,
-                                                  layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status=1, layer_name__contains=request.POST['search']).count()
+            map_layer = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status=1, layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
         else:
-            map_layer_count = Layerfiles.objects.filter(
-                user_id=current_user.pk, layerfiles_status=1).count()
-            map_layer = Layerfiles.objects.filter(
-                user_id=current_user.pk, layerfiles_status=1).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status=1).count()
+            map_layer = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status=1).order_by('created_at')[ start_row:end_row]
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
-                last_user = User.objects.get(
-                    pk=int(mapLayer.last_modifed_user))
-                row = {'id': mapLayer.pk, 'name': mapLayer.layer_name, 'description': mapLayer.layer_descri,
-                       'created_date': mapLayer.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+                last_user = User.objects.get(pk=int(mapLayer.last_modifed_user))
+                row = {'id':mapLayer.pk, 'name':mapLayer.layer_name, 'description':mapLayer.layer_descri, 'created_date':mapLayer.created_at, 'create_by':current_user.username, 'lmu':last_user.username}
                 myMaps.append(row)
 
-            response = {'total': map_layer_count, 'rows': myMaps}
+            response = {'total':map_layer_count, 'rows':myMaps}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -1414,47 +1291,34 @@ def my_map_data_all(request):
     myProjects = []
     myMaps = []
 
-    layers = Layerfiles.objects.filter(
-        user_id=current_user.pk, layerfiles_status=1).order_by('layer_name')
-    project = Layer_draw.objects.filter(
-        user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
-    map = Layer_maps.objects.filter(
-        user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
+    layers = Layerfiles.objects.filter(user_id=current_user.pk, layerfiles_status=1).order_by('layer_name')
+    project = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
+    map = Layer_maps.objects.filter(user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
 
     if len(layers) > 0:
         for mapLayer in layers:
-            last_user = User.objects.get(pk=int(mapLayer.last_modifed_user))
-
-            layerType = '.'+mapLayer.layer_type.lower()
-            layer_file = Layerfile_attachments.objects.get(
-                layerfiles_id=mapLayer.id, file_name__contains=layerType)
+            layerType = '.'+mapLayer.layer_type.lower();
+            layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.id, file_name__contains=layerType)
             filePath = str(layer_file.attachment)
             file = filePath.split('/')
             filename = file[len(file)-1]
 
-            row = {'id': mapLayer.pk, 'name': mapLayer.layer_name, 'description': mapLayer.layer_descri, 'layer_type': mapLayer.layer_type,
-                   'layerfileName': filename, 'created_date': mapLayer.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+            row = {'id':mapLayer.pk, 'name':mapLayer.layer_name, 'description':mapLayer.layer_descri, 'layer_type':mapLayer.layer_type, 'layerfileName':filename, 'created_date':mapLayer.created_at}
             myLayers.append(row)
 
     if len(project) > 0:
         for myProject in project:
-            last_user = User.objects.get(pk=int(myProject.last_modifed_user))
-            row = {'id': myProject.pk, 'name': myProject.layer_name, 'description': myProject.layer_descri,
-                   'created_date': myProject.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+
+            row = {'id': myProject.pk, 'name': myProject.layer_name, 'description': myProject.layer_descri, 'created_date': myProject.created_at}
             myProjects.append(row)
 
     if len(map) > 0:
         for myMap in map:
-            last_user = User.objects.get(pk=int(myMap.last_modifed_user))
-            row = {'id': myMap.pk, 'name': myMap.layer_name,
-                   'map_type': myMap.map_type}
+            row = {'id': myMap.pk, 'name': myMap.layer_name, 'map_type': myMap.map_type}
             myMaps.append(row)
 
-    response = {'my_layers': myLayers,
-                'my_map': myMaps, 'my_projects': myProjects}
-    # else:
-    #     response = {'my_layers': [], 'my_map':[], 'my_projects':[],'user':current_user.pk}
 
+    response = {'my_layers':myLayers, 'my_map':myMaps, 'my_projects':myProjects}
     return JsonResponse(response, content_type='json')
 
 
@@ -1471,25 +1335,19 @@ def my_layer_data(request):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            map_layer_count = Layer_draw.objects.filter(
-                user_id=current_user.pk, layerdraw_status=1, layer_name__contains=request.POST['search']).count()
-            map_layer = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1,
-                                                  layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1, layer_name__contains=request.POST['search']).count()
+            map_layer = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1, layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
         else:
-            map_layer_count = Layer_draw.objects.filter(
-                user_id=current_user.pk, layerdraw_status=1).count()
-            map_layer = Layer_draw.objects.filter(
-                user_id=current_user.pk, layerdraw_status=1).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1).count()
+            map_layer = Layer_draw.objects.filter(user_id=current_user.pk, layerdraw_status=1).order_by('created_at')[start_row:end_row]
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
-                last_user = User.objects.get(
-                    pk=int(mapLayer.last_modifed_user))
-                row = {'id': mapLayer.pk, 'name': mapLayer.layer_name, 'description': mapLayer.layer_descri,
-                       'created_date': mapLayer.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+                last_user = User.objects.get(pk=int(mapLayer.last_modifed_user))
+                row = {'id':mapLayer.pk, 'name':mapLayer.layer_name, 'description':mapLayer.layer_descri, 'created_date':mapLayer.created_at, 'create_by':current_user.username, 'lmu':last_user.username}
                 myMaps.append(row)
 
-            response = {'total': map_layer_count, 'rows': myMaps}
+            response = {'total':map_layer_count, 'rows':myMaps}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -1505,38 +1363,32 @@ def layers_data(request, layerId=None, groupId=None, *args, **kwargs):
     if(int(groupId) > 0 and int(layerId) > 0):
 
         groupLayer = Group_layer_draw.objects.get(pk=layerId)
-        groupFiles = Group_layer_drawfile.objects.filter(
-            grouplayer_draw_id=layerId, group_id=groupId, layerdraw_status=1).order_by('-layer_order')
+        groupFiles = Group_layer_drawfile.objects.filter(grouplayer_draw_id=layerId,group_id=groupId, layerdraw_status=1).order_by('-layer_order')
 
         if len(groupFiles) > 0:
             for groupFile in groupFiles:
-                fileRow = {'fileId': groupFile.pk, 'groupLayerId': groupFile.grouplayer_draw_id, 'layerName': groupFile.layer_name,
-                           'layerStatus': groupFile.layer_status, 'layerFile': groupFile.layer_file, 'layerOder': groupFile.layer_order}
+                fileRow = {'fileId':groupFile.pk, 'groupLayerId':groupFile.grouplayer_draw_id, 'layerName':groupFile.layer_name, 'layerStatus':groupFile.layer_status, 'layerFile':groupFile.layer_file, 'layerOder':groupFile.layer_order}
                 groupLayerArr.append(fileRow)
 
-            response = {'status': 1, 'rows': groupLayerArr,
-                        'group_id': groupId, 'map_id': layerId}
+            response = {'status': 1, 'rows': groupLayerArr, 'group_id':groupId, 'map_id':layerId}
+
 
     elif(int(groupId) == 0 and int(layerId) > 0):
 
         layers = Layer_draw.objects.get(pk=layerId)
-        layerFiles = Layer_drawfile.objects.filter(
-            layer_draw_id=layerId, layerdrawfile_status=1).order_by('-layer_order')
+        layerFiles = Layer_drawfile.objects.filter(layer_draw_id=layerId, layerdrawfile_status=1).order_by('-layer_order')
 
         if len(layerFiles) > 0:
             for layerFile in layerFiles:
-                fileRow = {'fileId': layerFile.pk, 'groupLayerId': groupId, 'layerName': layerFile.layer_name,
-                           'layerStatus': layerFile.layer_status, 'layerFile': layerFile.layer_file, 'layerOder': layerFile.layer_order}
+                fileRow = {'fileId':layerFile.pk, 'groupLayerId':groupId, 'layerName':layerFile.layer_name, 'layerStatus':layerFile.layer_status, 'layerFile':layerFile.layer_file, 'layerOder':layerFile.layer_order}
                 groupLayerArr.append(fileRow)
 
-        response = {'status': 1, 'rows': groupLayerArr,
-                    'group_id': groupId, 'map_id': layerId}
+        response = {'status': 1, 'rows': groupLayerArr, 'group_id':groupId, 'map_id':layerId}
 
     else:
         response = {'status': 0, 'rows': '', 'group_id': '', 'map_id': ''}
 
     return JsonResponse(response)
-
 
 @csrf_exempt
 def all_map_data(request):
@@ -1551,25 +1403,19 @@ def all_map_data(request):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            map_layer_count = Layerfiles.objects.filter(
-                layer_status='public', layerfiles_status=1, layer_name__contains=request.POST['search']).count()
-            map_layer = Layerfiles.objects.filter(layer_status='public', layerfiles_status=1,
-                                                  layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layerfiles.objects.filter(layer_status='public', layerfiles_status=1, layer_name__contains=request.POST['search']).count()
+            map_layer = Layerfiles.objects.filter(layer_status='public', layerfiles_status=1, layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
         else:
-            map_layer_count = Layerfiles.objects.filter(
-                layer_status='public', layerfiles_status=1).count()
-            map_layer = Layerfiles.objects.filter(
-                layer_status='public', layerfiles_status=1).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layerfiles.objects.filter(layer_status='public', layerfiles_status=1).count()
+            map_layer = Layerfiles.objects.filter(layer_status='public', layerfiles_status=1).order_by('created_at')[start_row:end_row]
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
-                last_user = User.objects.get(
-                    pk=int(mapLayer.last_modifed_user))
-                row = {'id': mapLayer.pk, 'name': mapLayer.layer_name, 'description': mapLayer.layer_descri,
-                       'created_date': mapLayer.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+                last_user = User.objects.get(pk=int(mapLayer.last_modifed_user))
+                row = {'id':mapLayer.pk, 'name':mapLayer.layer_name, 'description':mapLayer.layer_descri, 'created_date':mapLayer.created_at, 'create_by':current_user.username, 'lmu':last_user.username}
                 myMaps.append(row)
 
-            response = {'total': map_layer_count, 'rows': myMaps}
+            response = {'total':map_layer_count, 'rows':myMaps}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -1577,7 +1423,6 @@ def all_map_data(request):
     else:
         response = {'total': 0, 'rows': ''}
     return JsonResponse(response, content_type='json')
-
 
 @csrf_exempt
 def all_layer_data(request):
@@ -1592,25 +1437,19 @@ def all_layer_data(request):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            map_layer_count = Layer_draw.objects.filter(
-                layer_status='public', layerdraw_status=1, layer_name__contains=request.POST['search']).count()
-            map_layer = Layer_draw.objects.filter(layer_status='public', layerdraw_status=1,
-                                                  layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layer_draw.objects.filter(layer_status='public', layerdraw_status=1, layer_name__contains=request.POST['search']).count()
+            map_layer = Layer_draw.objects.filter(layer_status='public', layerdraw_status=1, layer_name__contains=request.POST['search']).order_by('created_at')[start_row:end_row]
         else:
-            map_layer_count = Layer_draw.objects.filter(
-                layer_status='public', layerdraw_status=1).count()
-            map_layer = Layer_draw.objects.filter(
-                layer_status='public', layerdraw_status=1).order_by('created_at')[start_row:end_row]
+            map_layer_count = Layer_draw.objects.filter(layer_status='public', layerdraw_status=1).count()
+            map_layer = Layer_draw.objects.filter(layer_status='public', layerdraw_status=1).order_by('created_at')[start_row:end_row]
 
         if len(map_layer) > 0:
             for mapLayer in map_layer:
-                last_user = User.objects.get(
-                    pk=int(mapLayer.last_modifed_user))
-                row = {'id': mapLayer.pk, 'name': mapLayer.layer_name, 'description': mapLayer.layer_descri,
-                       'created_date': mapLayer.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+                last_user = User.objects.get(pk=int(mapLayer.last_modifed_user))
+                row = {'id':mapLayer.pk, 'name':mapLayer.layer_name, 'description':mapLayer.layer_descri, 'created_date':mapLayer.created_at, 'create_by':current_user.username, 'lmu':last_user.username}
                 myMaps.append(row)
 
-            response = {'total': map_layer_count, 'rows': myMaps}
+            response = {'total':map_layer_count, 'rows':myMaps}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -1633,24 +1472,19 @@ def my_group(request):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            group_count = Groups.objects.filter(
-                user_id=current_user.pk, layer_name__contains=request.POST['search']).count()
-            groups = Groups.objects.filter(user_id=current_user.pk, layer_name__contains=request.POST['search']).order_by(
-                'updated_at')[start_row:end_row]
+            group_count = Groups.objects.filter(user_id=current_user.pk, layer_name__contains=request.POST['search']).count()
+            groups = Groups.objects.filter(user_id=current_user.pk, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
         else:
-            group_count = Groups.objects.filter(
-                user_id=current_user.pk).count()
-            groups = Groups.objects.filter(user_id=current_user.pk).order_by(
-                'updated_at')[start_row:end_row]
+            group_count = Groups.objects.filter(user_id=current_user.pk).count()
+            groups = Groups.objects.filter(user_id=current_user.pk).order_by('updated_at')[start_row:end_row]
 
         if len(groups) > 0:
             for group in groups:
                 last_user = User.objects.get(pk=int(group.last_modifed_user))
-                row = {'id': group.pk, 'group_name': group.group_name, 'description': group.group_descri,
-                       'created_date': group.created_at, 'create_by': current_user.username, 'lmu': last_user.username}
+                row = {'id':group.pk, 'group_name':group.group_name, 'description':group.group_descri, 'created_date':group.created_at, 'create_by':current_user.username, 'lmu':last_user.username}
                 myGroup.append(row)
 
-            response = {'total': group_count, 'rows': myGroup}
+            response = {'total':group_count, 'rows':myGroup}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -1673,13 +1507,10 @@ def all_group(request):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            group_count = Groups.objects.filter(
-                group_name__contains=request.POST['search']).count()
-            groups = Groups.objects.filter(group_name__contains=request.POST['search']).order_by(
-                'updated_at')[start_row:end_row]
+            group_count = Groups.objects.filter(group_name__contains=request.POST['search']).count()
+            groups = Groups.objects.filter(group_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
         else:
-            group_count = Group_member.objects.filter(
-                member=current_user.pk).count()
+            group_count = Group_member.objects.filter(member=current_user.pk).count()
             groups = Groups.objects.order_by('updated_at')[start_row:end_row]
 
         if len(groups) > 0:
@@ -1687,18 +1518,15 @@ def all_group(request):
                 createdUser = User.objects.get(pk=int(group.user_id))
                 last_user = User.objects.get(pk=int(group.last_modifed_user))
 
-                isMember = Group_member.objects.filter(
-                    member=current_user.pk, group_id=group.pk).exists()
+                isMember = Group_member.objects.filter(member=current_user.pk, group_id=group.pk).exists()
                 if(group.user_id == current_user.pk):
-                    row = {'id': group.pk, 'group_name': group.group_name, 'description': group.group_descri,
-                           'created_date': group.created_at, 'create_by': createdUser.username, 'lmu': last_user.username}
+                    row = {'id': group.pk, 'group_name': group.group_name, 'description': group.group_descri, 'created_date': group.created_at, 'create_by': createdUser.username, 'lmu': last_user.username}
                     myGroup.append(row)
                 elif(isMember):
-                    row = {'id': group.pk, 'group_name': group.group_name, 'description': group.group_descri,
-                           'created_date': group.created_at, 'create_by': createdUser.username, 'lmu': last_user.username}
+                    row = {'id':group.pk, 'group_name':group.group_name, 'description':group.group_descri, 'created_date':group.created_at, 'create_by':createdUser.username, 'lmu':last_user.username}
                     myGroup.append(row)
 
-            response = {'total': group_count, 'rows': myGroup}
+            response = {'total':group_count, 'rows':myGroup}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -1706,6 +1534,7 @@ def all_group(request):
     else:
         response = {'total': 0, 'rows': ''}
     return JsonResponse(response, content_type='json')
+
 
 
 @csrf_exempt
@@ -1733,7 +1562,7 @@ def data_update(request):
             layer.updated_at = updated_at
             layer.last_modifed_user = current_user.pk
             layer.save()
-            response = {'status': 1, 'id': id, 'lmu': current_user.username}
+            response = {'status': 1, 'id':id, 'lmu':current_user.username}
 
         elif(sub_proj == 'my_layer' or sub_proj == 'all_layer'):
             id = postData['id']
@@ -1749,7 +1578,7 @@ def data_update(request):
             layer.updated_at = updated_at
             layer.last_modifed_user = current_user.pk
             layer.save()
-            response = {'status': 1, 'id': id, 'lmu': current_user.username}
+            response = {'status': 1, 'id':id, 'lmu':current_user.username}
 
         elif (sub_proj == 'my_group' or sub_proj == 'all_group'):
             id = postData['id']
@@ -1789,20 +1618,16 @@ def data_delete(request):
             mapDel = Layerfiles.objects.get(pk=int(id))
             mapDel.delete()
 
-            isExistGroup = Group_layerfiles.objects.filter(
-                layerfiles_id=int(id))
+            isExistGroup = Group_layerfiles.objects.filter(layerfiles_id=int(id))
 
             if len(isExistGroup) <= 0:
-                directoryPath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), 'media/layers/' + str(id)))
+                directoryPath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/layers/' + str(id)))
                 shutil.rmtree(directoryPath)
 
-                mapFilesDel = Layerfile_attachments.objects.filter(
-                    layerfiles_id=int(id))
+                mapFilesDel = Layerfile_attachments.objects.filter(layerfiles_id=int(id))
                 mapFilesDel.delete()
 
-                getTable = Layer_column_name.objects.filter(
-                    layer_id=int(id)).order_by('-id')[:1]
+                getTable = Layer_column_name.objects.filter(layer_id=int(id)).order_by('-id')[:1]
                 for table in getTable:
                     tableName = table.table_name
 
@@ -1813,8 +1638,7 @@ def data_delete(request):
                     sql = """DROP TABLE """ + table_name + """;"""
                     cursor.execute(sql)
 
-                layerColumnsDel = Layer_column_name.objects.filter(
-                    layer_id=int(id))
+                layerColumnsDel = Layer_column_name.objects.filter(layer_id=int(id))
                 layerColumnsDel.delete()
 
             response = {'status': 1}
@@ -1824,14 +1648,13 @@ def data_delete(request):
             layerDele = Layer_draw.objects.get(pk=int(id))
             layerDele.delete()
 
-            layerFilesDele = Layer_drawfile.objects.filter(
-                layer_draw_id=int(id))
+            layerFilesDele = Layer_drawfile.objects.filter(layer_draw_id=int(id))
+
 
             for layerFileDele in layerFilesDele:
                 fileName = layerFileDele.layer_file
 
-                directoryPath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), 'media/draw_layers/' + str(fileName)))
+                directoryPath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/draw_layers/' + str(fileName)))
                 os.remove(directoryPath)
 
                 layerFileDele.delete()
@@ -1858,30 +1681,26 @@ def data_delete(request):
             fileID = mapDel.layerfiles_id
             mapDel.delete()
 
-            mapFilesDel = Group_layerfile_attachments.objects.filter(
-                group_layerfiles_id=int(id))
+            mapFilesDel = Group_layerfile_attachments.objects.filter(group_layerfiles_id=int(id))
             mapFilesDel.delete()
 
             isExistLayer = Layerfiles.objects.filter(pk=int(fileID))
 
+
             if len(isExistLayer) <= 0:
-                directoryPath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), 'media/layers/' + str(fileID)))
+                directoryPath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/layers/' + str(fileID)))
                 shutil.rmtree(directoryPath)
 
-                mapFilesDel = Layerfile_attachments.objects.filter(
-                    layerfiles_id=int(fileID))
+                mapFilesDel = Layerfile_attachments.objects.filter(layerfiles_id=int(fileID))
                 mapFilesDel.delete()
 
-                getTable = Layer_column_name.objects.filter(
-                    layer_id=int(fileID)).order_by('-id')[:1]
+                getTable = Layer_column_name.objects.filter(layer_id=int(fileID)).order_by('-id')[:1]
                 for table in getTable:
                     tableName = table.table_name
 
                 table_name = tableName
 
-                layerColumnsDel = Layer_column_name.objects.filter(
-                    layer_id=int(fileID))
+                layerColumnsDel = Layer_column_name.objects.filter(layer_id=int(fileID))
                 layerColumnsDel.delete()
 
                 if table_name:
@@ -1897,14 +1716,12 @@ def data_delete(request):
             fileID = layerDele.layer_draw_id
             layerDele.delete()
 
-            groupFilesDele = Group_layer_drawfile.objects.filter(
-                grouplayer_draw_id=int(id))
+            groupFilesDele = Group_layer_drawfile.objects.filter(grouplayer_draw_id=int(id))
 
             for groupFileDele in groupFilesDele:
                 fileName = groupFileDele.layer_file
 
-                directoryPath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), 'media/draw_layers/' + str(fileName)))
+                directoryPath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/draw_layers/' + str(fileName)))
                 os.remove(directoryPath)
 
                 groupFileDele.delete()
@@ -1917,7 +1734,6 @@ def data_delete(request):
         response = {'status': 0}
 
     return JsonResponse(response, content_type='json')
-
 
 @csrf_exempt
 def add_group(request):
@@ -1956,8 +1772,8 @@ def add_group(request):
 
             post_member.save()
 
-            response = {'status': 1, 'groupID': groupID,
-                        'message': 'Succssfully added'}
+
+            response = {'status': 1, 'groupID': groupID, 'message': 'Succssfully added'}
             return JsonResponse(response)
 
     response = {'status': 1, 'groupID': '', 'message': 'Not Added'}
@@ -1977,25 +1793,20 @@ def group_maps(request, gid=None, *args, **kwargs):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            group_count = Group_layerfiles.objects.filter(
-                group_id=gid, layerfiles_status=1, layer_name__contains=request.POST['search']).count()
-            groups = Group_layerfiles.objects.filter(
-                group_id=gid, layerfiles_status=1, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
+            group_count = Group_layerfiles.objects.filter(group_id=gid, layerfiles_status=1, layer_name__contains=request.POST['search']).count()
+            groups = Group_layerfiles.objects.filter(group_id=gid, layerfiles_status=1, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
         else:
-            group_count = Group_layerfiles.objects.filter(
-                group_id=gid, layerfiles_status=1).count()
-            groups = Group_layerfiles.objects.filter(
-                group_id=gid, layerfiles_status=1).order_by('updated_at')[start_row:end_row]
+            group_count = Group_layerfiles.objects.filter(group_id=gid, layerfiles_status=1).count()
+            groups = Group_layerfiles.objects.filter(group_id=gid, layerfiles_status=1).order_by('updated_at')[start_row:end_row]
 
         if len(groups) > 0:
             for group in groups:
                 created_user = User.objects.get(pk=int(group.user_id))
                 last_user = User.objects.get(pk=int(group.last_modifed_user))
-                row = {'id': group.pk, 'group_id': group.group_id, 'name': group.layer_name, 'description': group.layer_descri,
-                       'created_date': group.created_at, 'create_by': created_user.username, 'lmu': last_user.username}
+                row = {'id': group.pk, 'group_id':group.group_id, 'name': group.layer_name, 'description': group.layer_descri, 'created_date': group.created_at, 'create_by': created_user.username, 'lmu': last_user.username}
                 groupArr.append(row)
 
-            response = {'total': group_count, 'rows': groupArr}
+            response = {'total':group_count, 'rows':groupArr}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -2017,25 +1828,20 @@ def group_layers(request, gid=None, *args, **kwargs):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            group_count = Group_layer_draw.objects.filter(
-                group_id=gid, layerdraw_status=1, layer_name__contains=request.POST['search']).count()
-            groups = Group_layer_draw.objects.filter(
-                group_id=gid, layerdraw_status=1, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
+            group_count = Group_layer_draw.objects.filter(group_id=gid, layerdraw_status=1, layer_name__contains=request.POST['search']).count()
+            groups = Group_layer_draw.objects.filter(group_id=gid, layerdraw_status=1, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
         else:
-            group_count = Group_layer_draw.objects.filter(
-                group_id=gid, layerdraw_status=1).count()
-            groups = Group_layer_draw.objects.filter(
-                group_id=gid, layerdraw_status=1).order_by('updated_at')[start_row:end_row]
+            group_count = Group_layer_draw.objects.filter(group_id=gid, layerdraw_status=1).count()
+            groups = Group_layer_draw.objects.filter(group_id=gid, layerdraw_status=1).order_by('updated_at')[start_row:end_row]
 
         if len(groups) > 0:
             for group in groups:
                 created_user = User.objects.get(pk=int(group.user_id))
                 last_user = User.objects.get(pk=int(group.last_modifed_user))
-                row = {'id': group.pk, 'group_id': group.group_id, 'name': group.layer_name, 'description': group.layer_descri,
-                       'created_date': group.created_at, 'create_by': created_user.username, 'lmu': last_user.username}
+                row = {'id': group.pk, 'group_id':group.group_id, 'name': group.layer_name, 'description': group.layer_descri, 'created_date': group.created_at, 'create_by': created_user.username, 'lmu': last_user.username}
                 groupArr.append(row)
 
-            response = {'total': group_count, 'rows': groupArr}
+            response = {'total':group_count, 'rows':groupArr}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -2058,23 +1864,19 @@ def group_members(request, gid=None, *args, **kwargs):
         end_row = int(n_page)*int(n_rows)
 
         if (len(request.POST) == 3):
-            group_count = Group_member.objects.filter(
-                group_id=gid, layer_name__contains=request.POST['search']).count()
-            groups = Group_member.objects.filter(
-                group_id=gid, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
+            group_count = Group_member.objects.filter(group_id=gid, layer_name__contains=request.POST['search']).count()
+            groups = Group_member.objects.filter(group_id=gid, layer_name__contains=request.POST['search']).order_by('updated_at')[start_row:end_row]
         else:
             group_count = Group_member.objects.filter(group_id=gid).count()
-            groups = Group_member.objects.filter(group_id=gid).order_by('updated_at')[
-                start_row:end_row]
+            groups = Group_member.objects.filter(group_id=gid).order_by('updated_at')[start_row:end_row]
 
         if len(groups) > 0:
             for group in groups:
                 member = User.objects.get(pk=int(group.member))
-                row = {'id': group.pk, 'group_id': group.group_id, 'fname': member.first_name,
-                       'lname': member.last_name, 'superuser': group.superuser, 'first_admin': group.first_superuser}
+                row = {'id': group.pk, 'group_id':group.group_id, 'fname': member.first_name, 'lname': member.last_name, 'superuser': group.superuser, 'first_admin':group.first_superuser}
                 groupArr.append(row)
 
-            response = {'total': group_count, 'rows': groupArr}
+            response = {'total':group_count, 'rows':groupArr}
 
         else:
             response = {'total': 0, 'rows': ''}
@@ -2082,7 +1884,6 @@ def group_members(request, gid=None, *args, **kwargs):
     else:
         response = {'total': 0, 'rows': ''}
     return JsonResponse(response, content_type='json')
-
 
 @csrf_exempt
 def group_update(request):
@@ -2112,8 +1913,7 @@ def group_update(request):
             fs = FileSystemStorage()
             file_path = 'media/group_profile/' + photoName
             media_root = settings.MEDIA_ROOT
-            full_filepath = os.path.abspath(os.path.join(
-                os.path.dirname(media_root), file_path))
+            full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), file_path))
             filename = fs.save(full_filepath, photo)
 
             group.profile_image = photoName
@@ -2126,7 +1926,6 @@ def group_update(request):
         response = {'status': 1}
         return JsonResponse(response, content_type='json')
 
-
 @csrf_exempt
 def add_member(request):
     if request.method == "POST":
@@ -2138,8 +1937,7 @@ def add_member(request):
         if (member != ''):
 
             firstAdmin = 0
-            isFirstAdmin = Group_member.objects.filter(
-                group_id=group_id).count()
+            isFirstAdmin = Group_member.objects.filter(group_id=group_id).count()
 
             if(isFirstAdmin <= 0):
                 firstAdmin = 1
@@ -2159,8 +1957,7 @@ def add_member(request):
 
             post_member.save()
 
-            response = {'status': 1, 'groupID': group_id,
-                        'message': 'Succssfully added'}
+            response = {'status': 1, 'groupID': group_id, 'message': 'Succssfully added'}
             return JsonResponse(response)
 
     response = {'status': 1, 'groupID': '', 'message': 'Not Added member'}
@@ -2176,8 +1973,7 @@ def superuser_update(request):
         memberID = request.POST['memberId']
         updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
 
-        member = Group_member.objects.get(
-            pk=int(memberID), group_id=int(groupID))
+        member = Group_member.objects.get(pk=int(memberID), group_id=int(groupID))
 
         superuser = member.superuser
 
@@ -2206,7 +2002,7 @@ def download_shp(request):
         map_title = request.POST['map_title']
         download_type = request.POST['download_type']
 
-        if geojsonData != '' and map_title != '':
+        if geojsonData != '' and map_title !='':
 
             current_user = request.user
 
@@ -2214,14 +2010,12 @@ def download_shp(request):
             geojson = str(map_title) + '.json'
 
             media_root = settings.MEDIA_ROOT
-            mkdir = os.path.abspath(os.path.join(os.path.dirname(
-                media_root), 'media/download/' + newfolder))
+            mkdir = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/download/' + newfolder))
 
             if not os.path.isdir(mkdir):
-                os.mkdir(mkdir)
+                os.mkdir(mkdir);
 
-            jsonpath = os.path.abspath(os.path.join(os.path.dirname(
-                media_root), 'media/download/'+newfolder+'/'+geojson))
+            jsonpath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/download/'+newfolder+'/'+geojson))
 
             jsonData = json.loads(geojsonData)
             with open(jsonpath, 'w') as outfile:
@@ -2229,17 +2023,14 @@ def download_shp(request):
 
             if (download_type == 'SHP'):
                 shpfile = map_title + '.shp'
-                download_path = os.path.abspath(os.path.join(os.path.dirname(
-                    media_root), 'media/download/' + newfolder + '/' + shpfile))
-                args = ['ogr2ogr', '-f', 'ESRI Shapefile',
-                        download_path, jsonpath]
+                download_path = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/download/' + newfolder + '/' + shpfile))
+                args = ['ogr2ogr', '-f', 'ESRI Shapefile', download_path, jsonpath]
                 p = subprocess.Popen(args)
                 p.communicate()
 
                 # Create Zip
                 zip_file = map_title+".zip"
-                zip_path = os.path.abspath(os.path.join(os.path.dirname(
-                    media_root), 'media/download/' + newfolder + '/' + zip_file))
+                zip_path = os.path.abspath(os.path.join(os.path.dirname(media_root), 'media/download/' + newfolder + '/' + zip_file))
 
                 try:
                     zip_archive = ZipFile(zip_path, "w")
@@ -2248,19 +2039,16 @@ def download_shp(request):
                         for file in files:
                             print("fileCount :"+file)
                             if not file.endswith('.json') and not file.endswith('.zip'):
-                                zip_archive.write(os.path.join(folder, file), os.path.relpath(
-                                    os.path.join(folder, file), mkdir))
+                                zip_archive.write(os.path.join(folder, file), os.path.relpath(os.path.join(folder,file), mkdir))
 
-                    response = {'status': 1, 'filepath': 'media/download/' +
-                                newfolder + '/' + zip_file, 'file': zip_file, 'dir': mkdir}
+                    response = {'status': 1, 'filepath': 'media/download/' + newfolder + '/' + zip_file,'file': zip_file, 'dir': mkdir}
                     return JsonResponse(response, content_type='json')
 
                 except:
                     print("Error zip")
 
             elif(download_type == 'GEOJSON'):
-                response = {'status': 1, 'filepath': 'media/download/' +
-                            newfolder + '/' + geojson, 'file': geojson, 'dir': mkdir}
+                response = {'status': 1, 'filepath': 'media/download/' + newfolder + '/' + geojson, 'file': geojson,'dir': mkdir}
                 return JsonResponse(response, content_type='json')
 
         else:
@@ -2269,7 +2057,6 @@ def download_shp(request):
     else:
         response = {'status': 0}
         return JsonResponse(response, content_type='json')
-
 
 @csrf_exempt
 def remove_downloaded(request):
@@ -2293,13 +2080,11 @@ def get_layer_details(request, layerId=None, layerType=None, *args, **kwargs):
 
         if layerType == 'map':
             getLayerDeatils = Layerfiles.objects.get(pk=layerId)
-            response = {'status': 1,
-                        'gourpID': getLayerDeatils.group_layerfiles_id}
+            response = {'status': 1, 'gourpID': getLayerDeatils.group_layerfiles_id}
 
         elif layerType == 'layer':
             getLayerDeatils = Layer_draw.objects.get(pk=layerId)
-            response = {'status': 1,
-                        'gourpID': getLayerDeatils.group_layer_draw_id}
+            response = {'status': 1, 'gourpID': getLayerDeatils.group_layer_draw_id}
 
         else:
             response = {'status': 0, 'gourpID': ""}
@@ -2314,17 +2099,14 @@ def get_layer_details(request, layerId=None, layerType=None, *args, **kwargs):
 def map_view(request, map=None, gid=None, *args, **kwargs):
     if int(gid) > 0 and int(map) > 0:
         map_view = Group_layer_maps.objects.get(pk=int(map))
-        context = {'layer_status': 1, 'map_id': map, 'group_id': gid, 'map_type': map_view.map_type, 'map_center': map_view.map_center, 'map_zoom': map_view.map_zoom, 'layerTitle': map_view.tileLayer, 'data_frame': map_view.data_frame, 'north_arrow': map_view.north_arrow, 'desc_status': map_view.desc_status,
-                   'legend_status': map_view.legend_status, 'legend': map_view.legend, 'citation': map_view.citation, 'scale': map_view.scale, 'title': map_view.title, 'layer_name': map_view.layer_name, 'insert_map': map_view.insert_map, 'layer_descrip': map_view.layer_descri, 'grid_ref': map_view.grid_ref}
+        context = {'layer_status': 1, 'map_id': map, 'group_id':gid, 'map_type': map_view.map_type, 'map_center': map_view.map_center, 'map_zoom': map_view.map_zoom, 'layerTitle': map_view.tileLayer, 'data_frame':map_view.data_frame, 'north_arrow':map_view.north_arrow, 'desc_status':map_view.desc_status, 'legend_status':map_view.legend_status, 'legend':map_view.legend, 'citation':map_view.citation, 'scale':map_view.scale, 'title':map_view.title, 'layer_name':map_view.layer_name, 'insert_map':map_view.insert_map, 'layer_descrip':map_view.layer_descri, 'grid_ref':map_view.grid_ref}
 
     elif int(map) > 0 and int(gid) == 0:
         map_view = Layer_maps.objects.get(pk=int(map))
-        context = {'layer_status': 1, 'map_id': map, 'group_id': gid, 'map_type': map_view.map_type, 'map_center': map_view.map_center, 'map_zoom': map_view.map_zoom, 'layerTitle': map_view.tileLayer, 'data_frame': map_view.data_frame, 'north_arrow': map_view.north_arrow, 'desc_status': map_view.desc_status,
-                   'legend_status': map_view.legend_status, 'legend': map_view.legend, 'citation': map_view.citation, 'scale': map_view.scale, 'title': map_view.title, 'layer_name': map_view.layer_name, 'insert_map': map_view.insert_map, 'layer_descrip': map_view.layer_descri, 'grid_ref': map_view.grid_ref}
+        context = {'layer_status': 1, 'map_id': map, 'group_id':gid, 'map_type': map_view.map_type, 'map_center':map_view.map_center, 'map_zoom':map_view.map_zoom, 'layerTitle':map_view.tileLayer, 'data_frame':map_view.data_frame, 'north_arrow':map_view.north_arrow, 'desc_status':map_view.desc_status, 'legend_status':map_view.legend_status, 'legend':map_view.legend, 'citation':map_view.citation, 'scale':map_view.scale, 'title':map_view.title, 'layer_name':map_view.layer_name, 'insert_map':map_view.insert_map, 'layer_descrip':map_view.layer_descri, 'grid_ref':map_view.grid_ref}
 
     else:
-        context = {'layer_status': 0, 'map_id': '',
-                   'map_type': '', 'layer_file_type': ''}
+        context = {'layer_status': 0, 'map_id': '', 'map_type': '', 'layer_file_type': ''}
 
     return render(request, 'map/view.html', context)
 
@@ -2355,6 +2137,7 @@ def save_as_map(request):
         current_user = request.user
         group_layerfileId = ''
 
+
         if (layer_name != '' and layer_status != ''):
 
             add_layer = Layer_maps(
@@ -2369,9 +2152,9 @@ def save_as_map(request):
                 scale=mapTool_scale,
                 citation=mapTool_citation,
                 grid_ref=mapTool_grid,
-                insert_map=mapTool_insert_map,
+                insert_map = mapTool_insert_map,
                 desc_status=mapTool_data,
-                legend=legend,
+                legend = legend,
                 layer_status=layer_status,
                 layer_descri=layer_descri,
                 layerdraw_status=1,
@@ -2416,8 +2199,7 @@ def save_as_map(request):
                 add_layer.save()
 
             # /For Group
-            response = {'status': 1, 'mapLayerId': layerfileId,
-                        'group_mapLayerId': group_layerfileId}
+            response = {'status': 1, 'mapLayerId':layerfileId, 'group_mapLayerId':group_layerfileId}
 
         else:
             response = {'status': 0}
@@ -2461,11 +2243,9 @@ def save_map_file(request):
                 add_layerfile.save()
                 layerfile_id = add_layerfile.pk
 
-                fileName = 'mapdata_' + \
-                    str(layerfileID)+'_'+str(layerfile_id)+'.json'
+                fileName = 'mapdata_'+str(layerfileID)+'_'+str(layerfile_id)+'.json'
                 file_path = 'media/map_layers/'+fileName
-                full_filepath = os.path.abspath(os.path.join(
-                    os.path.dirname(media_root), file_path))
+                full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), file_path))
 
                 jsonData = json.loads(geojsonData)
                 with open(full_filepath, 'w') as outfile:
@@ -2473,15 +2253,14 @@ def save_map_file(request):
 
                 add_layerfile.layer_file = fileName
                 add_layerfile.layerdrawfile_status = 1
-                add_layerfile.updated_at = nowTime.strftime(
-                    "%Y-%m-%d %H:%M:%S")
+                add_layerfile.updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
                 add_layerfile.save()
 
                 # For Group
                 if groupFildID != '':
                     add_group_layerfile = Group_layer_filemaps(
                         group_id=groupID,
-                        grouplayer_draw_id=groupFildID,
+                        grouplayer_draw_id = groupFildID,
                         layer_name=layer_name,
                         layer_status=layer_status,
                         layerdraw_status=0,
@@ -2495,27 +2274,22 @@ def save_map_file(request):
                     add_group_layerfile.save()
                     add_group_layerfile = add_group_layerfile.pk
 
-                    group_fileName = 'group_drawmapdata_' + \
-                        str(groupID)+'_'+str(add_group_layerfile)+'.json'
+                    group_fileName = 'group_drawmapdata_'+str(groupID)+'_'+str(add_group_layerfile)+'.json'
                     group_file_path = 'media/draw_layers/' + group_fileName
-                    group_full_filepath = os.path.abspath(os.path.join(
-                        os.path.dirname(media_root), group_file_path))
+                    group_full_filepath = os.path.abspath(os.path.join(os.path.dirname(media_root), group_file_path))
 
                     group_jsonData = json.loads(geojsonData)
                     with open(group_full_filepath, 'w') as outfile:
                         json.dump(group_jsonData, outfile)
 
-                    update_group_layerfile = Group_layer_drawfile.objects.get(
-                        pk=add_group_layerfile, group_id=groupID)
+                    update_group_layerfile = Group_layer_drawfile.objects.get(pk=add_group_layerfile, group_id=groupID)
                     update_group_layerfile.layer_file = group_fileName
                     update_group_layerfile.layerdraw_status = 1
-                    update_group_layerfile.updated_at = nowTime.strftime(
-                        "%Y-%m-%d %H:%M:%S")
+                    update_group_layerfile.updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
                     update_group_layerfile.save()
 
                 # /For Group
-                response = {'status': 1, 'mapLayerId': layerfile_id,
-                            'filepath': file_path, 'group_mapLayerId': groupFildID}
+                response = {'status': 1, 'mapLayerId':layerfile_id, 'filepath': file_path, 'group_mapLayerId':groupFildID}
 
             else:
                 response = {'status': 0, 'filepath': ""}
@@ -2533,32 +2307,27 @@ def map_data(request, layerId=None, groupId=None, *args, **kwargs):
     if(int(groupId) > 0 and int(layerId) > 0):
 
         groupLayer = Group_layer_maps.objects.get(pk=layerId)
-        groupFiles = Group_layer_filemaps.objects.filter(
-            grouplayer_draw_id=layerId, group_id=groupId, layerdraw_status=1).order_by('-layer_order')
+        groupFiles = Group_layer_filemaps.objects.filter(grouplayer_draw_id=layerId,group_id=groupId, layerdraw_status=1).order_by('-layer_order')
 
         if len(groupFiles) > 0:
             for groupFile in groupFiles:
-                fileRow = {'fileId': groupFile.pk, 'groupLayerId': groupFile.grouplayer_draw_id, 'layerName': groupFile.layer_name,
-                           'layerStatus': groupFile.layer_status, 'layerFile': groupFile.layer_file, 'layerOder': groupFile.layer_order}
+                fileRow = {'fileId':groupFile.pk, 'groupLayerId':groupFile.grouplayer_draw_id, 'layerName':groupFile.layer_name, 'layerStatus':groupFile.layer_status, 'layerFile':groupFile.layer_file, 'layerOder':groupFile.layer_order}
                 groupLayerArr.append(fileRow)
 
-            response = {'status': 1, 'rows': groupLayerArr,
-                        'group_id': groupId, 'map_id': layerId}
+            response = {'status': 1, 'rows': groupLayerArr, 'group_id':groupId, 'map_id':layerId}
+
 
     elif(int(groupId) == 0 and int(layerId) > 0):
 
         layers = Layer_maps.objects.get(pk=layerId)
-        layerFiles = Layer_mapfiles.objects.filter(
-            layer_draw_id=layerId, layerdrawfile_status=1).order_by('-layer_order')
+        layerFiles = Layer_mapfiles.objects.filter(layer_draw_id=layerId, layerdrawfile_status=1).order_by('-layer_order')
 
         if len(layerFiles) > 0:
             for layerFile in layerFiles:
-                fileRow = {'fileId': layerFile.pk, 'groupLayerId': groupId, 'layerName': layerFile.layer_name,
-                           'layerStatus': layerFile.layer_status, 'layerFile': layerFile.layer_file, 'layerOder': layerFile.layer_order}
+                fileRow = {'fileId':layerFile.pk, 'groupLayerId':groupId, 'layerName':layerFile.layer_name, 'layerStatus':layerFile.layer_status, 'layerFile':layerFile.layer_file, 'layerOder':layerFile.layer_order}
                 groupLayerArr.append(fileRow)
 
-        response = {'status': 1, 'rows': groupLayerArr,
-                    'group_id': groupId, 'map_id': layerId}
+        response = {'status': 1, 'rows': groupLayerArr, 'group_id':groupId, 'map_id':layerId}
 
     else:
         response = {'status': 0, 'rows': '', 'group_id': '', 'map_id': ''}
@@ -2577,18 +2346,15 @@ def map_get_legends(request, mapID=None, groupId=None, *args, **kwargs):
 
         if len(data['main_legend']) > 0:
             for main_legend in data['main_legend']:
-                row = {
-                    'legend_text': main_legend['text'], 'legend_color': main_legend['color']}
+                row = {'legend_text':main_legend['text'], 'legend_color':main_legend['color']}
                 mapLegendMain.append(row)
 
         if len(data['sub_legend']) > 0:
             for main_legend in data['sub_legend']:
-                row = {
-                    'legend_text': main_legend['text'], 'legend_color': main_legend['color']}
+                row = {'legend_text': main_legend['text'], 'legend_color':main_legend['color']}
                 mapLegendSub.append(row)
 
-        response = {'status': 1, 'main_legend': mapLegendMain,
-                    'sub_legend': mapLegendSub}
+        response = {'status': 1, 'main_legend': mapLegendMain, 'sub_legend': mapLegendSub}
 
     elif (int(groupId) == 0 and int(mapID) > 0):
 
@@ -2597,19 +2363,284 @@ def map_get_legends(request, mapID=None, groupId=None, *args, **kwargs):
 
         if len(data['main_legend']) > 0:
             for main_legend in data['main_legend']:
-                row = {
-                    'legend_text': main_legend['text'], 'legend_color': main_legend['color']}
+                row = {'legend_text': main_legend['text'], 'legend_color': main_legend['color']}
                 mapLegendMain.append(row)
 
         if len(data['sub_legend']) > 0:
             for main_legend in data['sub_legend']:
-                row = {
-                    'legend_text': main_legend['text'], 'legend_color': main_legend['color']}
+                row = {'legend_text': main_legend['text'], 'legend_color': main_legend['color']}
                 mapLegendSub.append(row)
 
-        response = {'status': 1, 'main_legend': mapLegendMain,
-                    'sub_legend': mapLegendSub}
+        response = {'status': 1, 'main_legend': mapLegendMain, 'sub_legend': mapLegendSub}
     else:
         response = {'status': 0, 'main_legend': [], 'sub_legend': []}
 
     return JsonResponse(response)
+
+# [START] AAIB
+@csrf_exempt
+def province(request):
+    main_server = settings.AAIB_URL
+    aaib_token = request.session['access_token']
+    url = str(main_server)+'api/api/province&province=province&access-token='+str(aaib_token)
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    result = json.load(response)
+    response = {'province': result}
+    return JsonResponse(response)
+
+@csrf_exempt
+def district(request,province=None, *args, **kwargs):
+    main_server = settings.AAIB_URL
+    aaib_token = request.session['access_token']
+    url = str(main_server)+'api/api/district&province='+str(province)+'&access-token='+str(aaib_token)
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    result = json.load(response)
+    response = {'district': result}
+    return JsonResponse(response)
+
+@csrf_exempt
+def ds(request,province=None, district=None, *args, **kwargs):
+    main_server = settings.AAIB_URL
+    aaib_token = request.session['access_token']
+    url = str(main_server)+'api/api/ds&province='+str(province)+'&district='+str(district)+'&access-token='+str(aaib_token)
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    result = json.load(response)
+    response = {'ds': result}
+    return JsonResponse(response)
+
+@csrf_exempt
+def asc(request,district=None, *args, **kwargs):
+    main_server = settings.AAIB_URL
+    aaib_token = request.session['access_token']
+    url = str(main_server)+'api/api/asc&district='+str(district)+'&access-token='+str(aaib_token)
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    result = json.load(response)
+    response = {'asc': result}
+    return JsonResponse(response)
+
+@csrf_exempt
+def gn(request,province=None, district=None, ds=None, *args, **kwargs):
+    main_server = settings.AAIB_URL
+    aaib_token = request.session['access_token']
+    url = str(main_server)+'api/api/gn&province='+str(province)+'&district='+str(district)+'&ds='+str(ds)+'&access-token='+str(aaib_token)
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    result = json.load(response)
+    response = {'gn': result}
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def aaib_section(request):
+    if request.method == "POST":
+        section = request.POST['section']
+        province = request.POST['province']
+        district = request.POST['district']
+        asc = request.POST['asc']
+        ds = request.POST['ds']
+        gn = request.POST['gn']
+
+        main_server = settings.AAIB_URL
+        url = str(main_server) + 'api/api/section-polygons'
+
+        values = {'section': section, 'province': province, 'district': district, 'asc': asc, 'ds': ds, 'gn': gn}
+
+        data = urllib.urlencode(values)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+        result = json.load(response)
+        response2 = {'status':1, 'response': result}
+        return JsonResponse(response2)
+
+    else:
+        response = {'status': 0}
+        return JsonResponse(response)
+
+@csrf_exempt
+def aaib_data(request):
+    if request.method == "POST":
+        section = request.POST['section']
+        province = request.POST['province']
+        district = request.POST['district']
+        asc = request.POST['asc']
+        ds = request.POST['ds']
+        gn = request.POST['gn']
+
+        main_server = settings.AAIB_URL
+        aaib_token = request.session['access_token']
+
+        url = str(main_server) + 'api/api/geojson&access-token='+str(aaib_token)
+        values = {'section': section, 'province': province, 'district': district, 'asc': asc, 'ds': ds, 'gn': gn}
+
+        data = urllib.urlencode(values)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+        result = json.load(response)
+        response2 = {'response': result}
+        return JsonResponse(response2)
+
+    else:
+        response = {'status': 0}
+        return JsonResponse(response)
+
+
+@csrf_exempt
+def aaib_one_polygon(request):
+    if request.method == "POST":
+        section = request.POST['section']
+        province = request.POST['province']
+        district = request.POST['district']
+        asc = request.POST['asc']
+        ds = request.POST['ds']
+        gn = request.POST['gn']
+        offset = request.POST['offset']
+
+        main_server = settings.AAIB_URL
+        url = str(main_server) + 'api/api/aaib-one-polygon'
+
+        values = {'section': section, 'province': province, 'district': district, 'asc': asc, 'ds': ds, 'gn': gn, 'offset':offset}
+
+        data = urllib.urlencode(values)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+        result = json.load(response)
+        response2 = {'status':1, 'response': result}
+        return JsonResponse(response2)
+
+    else:
+        response = {'status': 0}
+        return JsonResponse(response)
+
+@csrf_exempt
+def aaib_polygon(request):
+    if request.method == "POST":
+        section = request.POST['section']
+        aaib_value = request.POST['values']
+
+        main_server = settings.AAIB_URL
+        url = str(main_server) + 'api/api/aaib-polygons'
+
+        values = {'section': section, 'values': aaib_value}
+
+        data = urllib.urlencode(values)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+        result = json.load(response)
+        response2 = {'status':1, 'response': result}
+        return JsonResponse(response2)
+
+    else:
+        response = {'status': 0}
+        return JsonResponse(response)
+
+@csrf_exempt
+def search_public_layers_list(request, layer_status_type=None, gid=None, **kwargs):
+    
+    search = None
+    if request.method == "POST":
+        search = request.POST['search']
+    
+    lists_tuples = []
+
+    if (layer_status_type == 'public'):
+
+        if (layer_status_type == 'public'):
+            
+            if(search !=None):
+                map_layer = Layerfiles.objects.filter(layer_name__icontains=search).filter(layer_status='public').order_by('layer_name')
+                # draw_layer = Layer_draw.objects.filter(layer_name__icontains=search).filter(layer_status='public').order_by('layer_name')
+            else:
+                map_layer = Layerfiles.objects.filter(layer_status='public').order_by('layer_name')
+                # draw_layer = Layer_draw.objects.filter(layer_status='public').order_by('layer_name')
+
+
+        if len(map_layer) > 0:
+            for mapLayer in map_layer:
+                if (mapLayer.layerfiles_status == 1 and mapLayer.layer_type != 'KML'):
+
+                    layerfileName = ''
+
+                    # if mapLayer.layer_type == 'KML':
+                    #     layer_file = Layerfile_attachments.objects.get(layerfiles_id=mapLayer.pk, file_name__contains='.kml')
+                    #     layerfileName = layer_file.file_name
+
+                    lists_tuples.append({'layer_name': mapLayer.layer_name, 'layerID': mapLayer.pk, 'layerType': 'map', 'description': mapLayer.layer_descri, 'fileType': mapLayer.layer_type, 'fileName': layerfileName, 'userType': 'user', 'group_id': ''})
+
+        # if len(draw_layer) > 0:
+        #     for drawLayer in draw_layer:
+        #         if (drawLayer.layerdraw_status == 1):
+        #
+        #             drawLayerFiles = Layer_drawfile.objects.filter(layer_draw_id=drawLayer.pk)
+        #             if len(drawLayerFiles) > 0:
+        #                 for drawLayerFile in drawLayerFiles:
+        #                     lists_tuples.append({'layer_name': drawLayerFile.layer_name, 'layerID': drawLayerFile.pk,'layerType': 'layer', 'description': '', 'fileType': 'GEOJSON','fileName': drawLayerFile.layer_file, 'userType': 'user', 'group_id': ''})
+
+        response = {'status': 1, 'searchList': lists_tuples}
+
+    else:
+        response = {'status': 0, 'searchList': ''}
+
+    return JsonResponse(response, content_type='json')
+
+@csrf_exempt
+def aaib_layer_data(request, layer_id=None, *args, **kwargs):
+
+    if(layer_id==None):
+        response = {'status': 0, 'geojson_file': '', 'file_path': ''}
+        return JsonResponse(response, content_type='json')
+
+    nowTime = datetime.now()
+    dateTime = nowTime.strftime("%Y%m%d%H%M")
+
+    media_root = settings.MEDIA_ROOT
+    fullpath = os.path.abspath(os.path.join(os.path.dirname(media_root), 'static/aaib_loading/'))
+    geojson_file = str(dateTime)+'aaib_'+str(layer_id)+'.json'
+    table_name = 'z_layer_'+str(layer_id)+'_shp'
+    geojsonPath = r'' + fullpath + '/' + geojson_file
+    db = settings.DATABASES
+    default_db = db['default']
+
+    shell = 'ogr2ogr -f GeoJSON -t_srs EPSG:4326 ' + geojsonPath + ' "PG:dbname='+default_db['NAME']+' user='+default_db['USER']+' password='+default_db['PASSWORD']+'" -sql "select * from public.' + table_name + '"'
+    subprocess.call(shell, shell=True)
+
+    file_exists = os.path.isfile(geojsonPath)
+
+    if file_exists:
+        response = {'status': 1, 'geojson_file': geojson_file, 'file_path': 'static/aaib_loading/'}
+    else:
+        response = {'status': 0, 'geojson_file': '', 'file_path': ''}
+
+    return JsonResponse(response, content_type='json')
+
+@csrf_exempt
+def aaib_remove_file(request):
+    if request.method == "POST":
+        fileDir = request.POST['fileDir']
+        file = request.POST['filename']
+
+        media_root = settings.MEDIA_ROOT
+        fullpath = os.path.abspath(os.path.join(os.path.dirname(media_root), fileDir))
+        filePath = r'' + fullpath + '/' + file
+
+        print(filePath)
+
+        file_exists = os.path.isfile(filePath)
+        if file_exists:
+            fileList = glob.glob(filePath)
+            for file in fileList:
+                os.remove(file)
+
+            response = {'status': 1}
+
+        else:
+            response = {'status': 0}
+
+    else:
+        response = {'status': 0}
+
+    return JsonResponse(response, content_type='json')
+# [END] AAIB

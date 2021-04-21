@@ -1,6 +1,7 @@
-// var server_url = 'https://geoedgemaps.com';
-// var subdivision = '/geoedgepro';
-var server_url = 'http://127.0.0.1:8000';
+var server_url = 'http://geoedge.lk';
+var subdivision = '/aaib_map';
+//var server_url = 'http://127.0.0.1:8000/';
+//var subdivision = '';
 
 
 $(function(){
@@ -18,6 +19,8 @@ var shp_file_name = '';
 
 /* [START] - Post Layer Panel */
 $("#modal-87694").click(function(){
+
+    aaib_tab_province();
 
     $("#layer_form").show();
     $("#layer_name").val('');
@@ -38,9 +41,46 @@ $("#modal-87694").click(function(){
     other_file_status = 0;
     otherfile_count = 0;
     
+    
     $('.add_layer_checkbox').prop("checked", false);
 
 });
+
+
+// AAIB Function
+function aaib_tab_province(){
+    var url = subdivision+"/map/province/";
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        //data:values,
+        beforeSend: function(){
+            //preloader_in();
+        },
+        success: function(response){
+            var provinces = response['province'];
+
+            var select = '<option value="">Province</option>';
+
+            $.each(provinces[0], function (index, value) {
+                    select +='<option value="'+index+'">'+value+'</option>'
+            });
+
+            $("#aaib_province").html(select);
+
+            $("#aaib_district").html(select_option("District"));
+            $("#aaib_asc").html(select_option("ASC"));
+            $("#aaib_ds").html(select_option("DS"));
+            $("#aaib_gn").html(select_option("GN"));
+        }
+    });
+}
+
+function select_option(name){
+    var select_null = '<option value="">'+name+'</option>';
+    return select_null;
+}
+// AAIB Function
 
 $("#layer_submit").click(function (){
     var layerStatus = false;
@@ -64,7 +104,7 @@ $("#layer_submit").click(function (){
 
         post_data = {'layer_name':layer_name, 'layer_status':layer_status, 'layer_descri':layer_descri, 'group_id':gid};
         $.ajax({
-          url: "/map/post_layers/",
+          url: subdivision+"/map/post_layers/",
           data: post_data,
           type: 'POST',
           dataType: 'json',
@@ -101,7 +141,7 @@ $(document).on('click','#upload_finals',function(){
             var $this = $(this), data = $this.data();
 
             var layer_id = $("#layer_id").val();
-            data.url = "/map/post_upload/"+layer_id+"/";
+            data.url = subdivision+"/map/post_upload/"+layer_id+"/";
             data.submit();
         });
 });
@@ -239,7 +279,7 @@ if($('#modal-87694').length){
                 //Progress bar
                 $("#progess_bar_text").html("Loading...");
                 $("#progess_bar_text").fadeIn();
-                alert_notification_popup('success', 5);
+                //alert_notification_popup('success', 5);
 
                 setTimeout(function(){
 
@@ -250,7 +290,7 @@ if($('#modal-87694').length){
                         var gourdId = gid;
                     }
 
-                    var load_url = "/map/load_layer_files/"+layer_id+"/"+gourdId+"/";
+                    var load_url = subdivision+"/map/load_layer_files/"+layer_id+"/"+gourdId+"/";
                     var layerLoad = $.ajax({
                                   url:load_url,
                                   dataType: "json",
@@ -406,33 +446,38 @@ $('#opening_panel').click(function(){
 
         }else{
             $.ajax({
-                  url:"/map/my_map_data_all/",
+                  url:subdivision+"/map/my_map_data_all/",
                   type: 'GET',
                   dataType: "json",
                   beforeSend: function(){
                                // $("#overlay_product_list").show();
                             },
                   success: function(data){
+                      
+                            $("#my_layer_panel").empty();
+                            $("#my_map_panel").empty();
+                            $("#my_project_panel").empty();
 
                             var myProjectList = '';
                             if(data.my_projects.length > 0){
                                 for(var p=0; p<data.my_projects.length; p++){
                                    var my_projects = data.my_projects;
-                                   myProjectList += '<li class="list-group-item2" onclick="my_project_load(`'+my_projects[p]['id']+'`,`'+my_projects[p]['name']+'`)";><small>'+my_projects[p]['name']+'</small></li>';
+                                   myProjectList += '<li class="list-group-item2" onclick="popup_project_open(`'+my_projects[p]['id']+'`,`'+my_projects[p]['name']+'`)";><small>'+my_projects[p]['name']+'</small></li>';
                                 }
                             }
                             $('#my_project_panel').append(myProjectList);
 
-                            var myMapList = '';
+                            /*var myMapList = '';
                             var gourpID = (!gid)?0:gid;
                             if(data.my_map.length > 0){
                                 for(var m=0; m<data.my_map.length; m++){
                                    var my_map = data.my_map;
-                                   myMapList += '<li class="list-group-item2"><a href="/map/view/'+my_map[m]['id']+'/'+gourpID+'" target="_blank" style="text-decoration: none;"><small>'+my_map[m]['name']+'</small></a></li>';
+                                   myMapList += '<li class="list-group-item2"><a href="'+subdivision+'/map/view/'+my_map[m]['id']+'/'+gourpID+'" target="_blank" style="text-decoration: none;"><small>'+my_map[m]['name']+'</small></a></li>';
                                 }
                             }
                             $('#my_map_panel').append(myMapList);
-
+							*/
+							
                             var myLayerList = '';
                             if(data.my_layers.length > 0){
                                 for(var l=0; l<data.my_layers.length; l++){
@@ -958,7 +1003,7 @@ $("#layer_submit_save").click(function (){
         var layersOrderCount = layersOrder.length;
         if(layersOrderCount > 0){
             var tosave = $.ajax({
-                          url:"/map/save_as_layers/",
+                          url:subdivision+"/map/save_as_layers/",
                           data: save_data,
                           type: 'POST',
                           dataType: "json",
@@ -971,6 +1016,7 @@ $("#layer_submit_save").click(function (){
             $.when(tosave).done(function() {
 
                 var response = jQuery.parseJSON(tosave.responseText);
+                
                 if(response['status'] == 1){
 
                     var layerFileID = response['drawLayerId']
@@ -994,7 +1040,7 @@ $("#layer_submit_save").click(function (){
                             var data = {'layer_name':getLayerGroup.group_name, 'dataGeojson':convertedData, 'layerfileID':layerFileID, 'layer_status':layer_status, 'group_id':gid, 'group_file_id':group_file_id, 'layer_order':(l+1)}
 
                             $.ajax({
-                                  url:"/map/save_layers_file/",
+                                  url:subdivision+"/map/save_layers_file/",
                                   data: data,
                                   type: 'POST',
                                   dataType: "json",
@@ -1054,12 +1100,12 @@ function add_layers_list_to_panel(search_type, val=''){
     var group_id = (!gid)?0:gid;
 
     if(search_type == 'group' || search_type == 'public_group' || search_type == 'all_group'){
-        url = "/map/search_group_layers_list/"+search_type+"/"+group_id+"/";
+        url = subdivision+"/map/search_group_layers_list/"+search_type+"/"+group_id+"/";
     }else if(search_type == 'search' & val !=''){
-        url = "/map/searchbox_layers_list/"+group_id+"/";
+        url = subdivision+"/map/searchbox_layers_list/"+group_id+"/";
         values = {'search':val}
     }else{
-        url = "/map/search_layers_list/"+search_type+"/";
+        url = subdivision+"/map/search_layers_list/"+search_type+"/";
     }
 
     $.ajax({
@@ -1889,6 +1935,9 @@ var map_print;
 var mapPrintLayers;
 var tileLayer_print;
 
+var projectLayerId;
+var projectLayerName;
+
 
 function init(layer_status, mapID, layerfile_type, filename, map_type, layerName){
 
@@ -2038,7 +2087,7 @@ function layer_to_map(layer_id, group_id, layer_type, layer_file, fitBound, laye
                 preloader_in();
 
                 var getGeojson = $.ajax({
-                      url:"/map/layer_data/"+layer_id+"/"+group_id+"/",
+                      url:subdivision+"/map/layer_data/"+layer_id+"/"+group_id+"/",
                       dataType: "json",
                       error: function (xhr) {
                             alert_notification_popup('fail', 3);
@@ -2085,7 +2134,7 @@ function layer_to_map(layer_id, group_id, layer_type, layer_file, fitBound, laye
                     preloader_out();
 
                     if(fitBound === true){
-                        alert_notification_popup('success', 6);
+                        //alert_notification_popup('success', 6);
                         map.fitBounds(geojsonMap.getBounds(), {padding: [30, 30]});
                     }
                 });
@@ -2093,7 +2142,7 @@ function layer_to_map(layer_id, group_id, layer_type, layer_file, fitBound, laye
 
             if(layer_type == 'KML' && layer_file != ''){
 
-                var kml_url = "/media/layers/"+layer_id+"/"+layer_file;
+                var kml_url = subdivision+"/media/layers/"+layer_id+"/"+layer_file;
                 var kmlLoad = new L.KML(kml_url, {async: true});
                 var groupId =  'm'+layer_id+'_map';
 
@@ -2101,7 +2150,7 @@ function layer_to_map(layer_id, group_id, layer_type, layer_file, fitBound, laye
                         preloader_out();
 
                         if(fitBound === true){
-                            alert_notification_popup('success', 6);
+                            //alert_notification_popup('success', 6);
                             map.fitBounds(e.target.getBounds(), {padding: [30, 30]});
                         }
                     });
@@ -2153,7 +2202,7 @@ function layer_to_map_new(layer_id, group_id, layer_type, layer_file, fitBound, 
                 preloader_in();
 
                 var getGeojson = $.ajax({
-                      url:"/map/layer_data/"+layer_id+"/"+group_id+"/",
+                      url:subdivision+"/map/layer_data/"+layer_id+"/"+group_id+"/",
                       dataType: "json",
                       error: function (xhr) {
                             alert_notification_popup('fail', 3);
@@ -2178,7 +2227,7 @@ function layer_to_map_new(layer_id, group_id, layer_type, layer_file, fitBound, 
 
             if(layer_type == 'KML' && layer_file != ''){
 
-                var kml_url = "/media/layers/"+layer_id+"/"+layer_file;
+                var kml_url = subdivision+"/media/layers/"+layer_id+"/"+layer_file;
                 var kmlLoad = new L.KML(kml_url, {async: true});
                 var groupId =  'm'+layer_id+'_map';
 
@@ -2186,7 +2235,7 @@ function layer_to_map_new(layer_id, group_id, layer_type, layer_file, fitBound, 
                         preloader_out();
 
                         if(fitBound === true){
-                            alert_notification_popup('success', 6);
+                            //alert_notification_popup('success', 6);
                             map.fitBounds(e.target.getBounds(), {padding: [30, 30]});
                         }
 
@@ -2242,7 +2291,7 @@ function layer_to_map_new(layer_id, group_id, layer_type, layer_file, fitBound, 
             }
 
             if(layer_type == 'JSON' && layer_file != ''){
-                file_path = "media/layers/"+layer_id+"/"
+                var file_path = "media/layers/"+layer_id+"/"
                 geojsonToMap(layer_id, group_id, true, layer_name, layer_file, file_path, layer_type);
             }
 
@@ -2328,10 +2377,10 @@ function geojsons_to_map(layer_id, group_id, fitBound, layer_name){
     }
 
     var get_data = $.ajax({
-                  url:"/map/layersdata/"+layer_id+"/"+groupID+"/",
+                  url:subdivision+"/map/layersdata/"+layer_id+"/"+groupID+"/",
                   type:'GET',
                   dataType: "json",
-                  success: '', //alert_notification_popup('success', 2),
+                  success: alert_notification_popup('success', 2),
                   error: function (xhr) {
                     alert_notification_popup('fail', 7);
                   }
@@ -2361,7 +2410,7 @@ function geojsons_to_map(layer_id, group_id, fitBound, layer_name){
                 var fileID = filesData[f].fileId;
                 var layerStatus = filesData[f].layerStatus;
 
-                var file_url = "/media/draw_layers/"+filename;
+                var file_url = subdivision+"/media/draw_layers/"+filename;
 
                 var getJson = $.ajax({
                         url: file_url,
@@ -2400,7 +2449,7 @@ function geojsons_to_map(layer_id, group_id, fitBound, layer_name){
                         });
 
                     if(fitBound === true){
-                        alert_notification_popup('success', 6);
+                        //alert_notification_popup('success', 6);
                         map.fitBounds(geojsonFileMap.getBounds(),{padding: [30, 30]});
                     }
                 }
@@ -2414,7 +2463,7 @@ function geojson_to_map(fileID, group_id, fitBound, layer_name, filename){
 
     preloader_in();
 
-    var file_url = "/media/draw_layers/"+filename;
+    var file_url = subdivision+"/media/draw_layers/"+filename;
 
     var changeStr = filename.replace(".json", "");
     var rechangeStr = changeStr.replace(".", "_");
@@ -2458,7 +2507,7 @@ function geojson_to_map(fileID, group_id, fitBound, layer_name, filename){
             preloader_out();
 
             if(fitBound === true){
-                alert_notification_popup('success', 6);
+                //alert_notification_popup('success', 6);
                 map.fitBounds(geojsonFileMap.getBounds(),{padding: [30, 30]});
             }
         });
@@ -2468,7 +2517,7 @@ function geojson_to_map(fileID, group_id, fitBound, layer_name, filename){
 
 /* [START]- Load geojson file to Map & Remove - New*/
 function geojsonToMap(layerID, group_id, fitBound, layer_name, filename, fileDir, layer_type){
-    var file_url = "/"+fileDir+filename;
+    var file_url = subdivision+"/"+fileDir+filename;
 
     var groupId =  'm'+layerID+'_map';
 
@@ -2521,7 +2570,7 @@ function geojsonToMap(layerID, group_id, fitBound, layer_name, filename, fileDir
         preloader_out();
 
         if(fitBound === true){
-            alert_notification_popup('success', 6);
+            //alert_notification_popup('success', 6);
             map.fitBounds(geojsonFileMap.getBounds(),{padding: [30, 30]});
 
             /*Remove Geojson file */
@@ -2560,7 +2609,7 @@ function remove_geojsonFile(fileDir, filename){
         setTimeout(function() {
             var data = {'fileDir':fileDir, 'filename':filename}
             $.ajax({
-                  url: "/map/remove_file/",
+                  url: subdivision+"/map/remove_file/",
                   data: data,
                   type: 'POST',
                   dataType: 'json',
@@ -2569,7 +2618,7 @@ function remove_geojsonFile(fileDir, filename){
                     }
                 });
 
-        }, 10000);
+        }, 120000);
 
 }
 /* [END]- Load geojson file to Map & Remove  - New*/
@@ -2580,8 +2629,8 @@ function layer_li_to_sortable(groupId, layer_name, layer_status, fileId){
     var sub_layer_name = layer_name.substring(0,25);
     var layerChecked = (layer_status == 1)? 'checked':'';
 
-    var addToSortableList = '<li style="width:210px;height:auto;min-height:50px;" class="ui-state-default" data-fileid="'+fileId+'" id="'+groupId+'">'
-                            +'<span id="'+groupId+'_layerName" style="height:auto;width:70px;word-wrap: break-word;"><small>'+sub_layer_name+' </small></span>'
+    var addToSortableList = '<li style="width:210px;height:auto;min-height:50px; position: relative;" class="ui-state-default" data-fileid="'+fileId+'" id="'+groupId+'">'
+                            +'<span id="'+groupId+'_layerName" style="height:auto;width:70px;word-wrap:break-word; font-size: 10px;"><small>'+sub_layer_name+' </small></span>'
                             +'<span style="margin-left:40%;width:38%;margin-top:0px;">'
                                 +'<i class="glyphicon glyphicon-sound-stereo layerGroup_opacity_button" id="slide" style="cursor:pointer;"> </i>'
                                 +'<span class="layerGroup_opacity_slider" id="slider_'+groupId+'" style="position:absolute;top:25px;left:5px;width:80%; z-index:1000000000; display:none;"></span>'
@@ -3527,7 +3576,7 @@ function saveAsMap(save_type){
                         measure_layersId("add");
 
                         $.ajax({
-                            url: "/map/save_layers/",
+                            url: subdivision+"/map/save_layers/",
                             data: data,
                             type: 'POST',
                             dataType: 'json',
@@ -3697,7 +3746,7 @@ function shareMap(){
     if(LastSavedDrawLayerId > 0){
         save_data = {dataGeojson :geojson_data(), 'last_saved_id':LastSavedDrawLayerId};
 
-        var shareURL = server_url+'/map/share_map/'+LastSavedDrawLayerId+'/layer';
+        var shareURL = server_url+subdivision+'/map/share_map/'+LastSavedDrawLayerId+'/layer';
         var share_url = '<a href="'+shareURL+'">'+shareURL+'</a>';
 
         $('#share_url').html(share_url);
@@ -3982,6 +4031,9 @@ function notification_text(index){
         case 9:
             text = "Geolocation is not supported by this browser.";
             break;
+        case 10:
+            text = "AAIB data not found";
+            break;
         default:
             text = "Try Again Later";
             break
@@ -4055,20 +4107,77 @@ function add_field_for_property(){
 
 /* [START] - Load from my panel */
 function my_layer_load(layerID, layer_type, layer_file, layer_name){
-
     var group_id = (!gid)?0:gid;
     layer_to_map_new(layerID, group_id, layer_type, layer_file, false, layer_name, 1);
+}
 
+function popup_project_open(layerID, layer_name){
+        projectLayerId = layerID;
+        projectLayerName = layer_name;
+
+        if(layersGroups.length > 0){
+            $("#confirm_to_open_project_content").html("Are you sure you want to close current project & open "+layer_name+" project");
+            $('#modal_confirm_to_open_my_project').modal('show');
+        }else{
+            my_project_load(projectLayerId, projectLayerName);
+        }
+}
+
+function cancle_open_project(){
+    $("#confirm_to_open_project_content").html('');
+    $('#modal_confirm_to_open_my_project').modal('hide');
+    projectLayerId = null;
+    projectLayerName = null;
+}
+
+function open_project(){
+    $("#confirm_to_open_project_content").html('');
+    $('#modal_confirm_to_open_my_project').modal('hide');
+
+    if(projectLayerId!="" && projectLayerName!=""){
+        my_project_load(projectLayerId, projectLayerName);
+        projectLayerId = null;
+        projectLayerName = null;
+    }
 }
 
 function my_project_load(layerID, layer_name){
-
     var group_id = (!gid)?0:gid;
+
+    if(layersGroups.length > 0){
+        for(i=0; i<layersGroups.length; i++){
+            var layer_group = layersGroups[i].group_id;
+            window[layer_group].clearLayers();
+        }
+        $("#sortable").empty();
+        $("#map_description").empty();
+        layersGroups = [];
+    }
+
+    $("#layer_name_save").val('');
+    $("#layer_descri_save").val('');
+    $("#layer_name_save_map").val('');
+    $("#layer_descri_save_map").val('');
+
+    layersFeatureGroup = [];
+    measureLayerID = [];
+    measureLayers = [];
+    drawLayersId = [];
+    addLayerBySearching = [];
+    property_add_fields = [];
+    properties_arr = [];
+    randomColorArray = [];
+    layerGroupList = [];
+    layerGroupStyle = [];
+    propertyUpdate = [];
+    filterValueChecked = [];
+
+    $("#map_title").html(layer_name);
     geojsons_to_map(layerID, gid, true, layer_name);
-
 }
-/* [START] - Load from my panel */
 
+
+/* [START] - Load from my panel */
 $(document).on('click','.property_field_remove',function(){
     var $this = $(this).parent();
     var row = $this.parent();
@@ -5700,7 +5809,7 @@ function save_as_map(){
             var layersOrderCount = layersOrder.length;
             if(layersOrderCount > 0){
                 var tosave = $.ajax({
-                              url:"/map/save_as_map/",
+                              url:subdivision+"/map/save_as_map/",
                               data: save_data,
                               type: 'POST',
                               dataType: "json",
@@ -5736,7 +5845,7 @@ function save_as_map(){
                                 var data = {'layer_name':getLayerGroup.group_name, 'dataGeojson':convertedData, 'layerfileID':layerFileID, 'layer_status':layer_status, 'group_id':gid, 'group_file_id':group_file_id, 'layer_order':(l+1)}
 
                                 $.ajax({
-                                      url:"/map/save_map_file/",
+                                      url:subdivision+"/map/save_map_file/",
                                       data: data,
                                       type: 'POST',
                                       dataType: "json",
@@ -5839,7 +5948,7 @@ function downloadFile(file){
 
             var data = {'dataGeojson':convertedData, 'map_title':mapName, 'download_type':file}
             var shp_download = $.ajax({
-                              url: "/map/download_shp/",
+                              url: subdivision+"/map/download_shp/",
                               data: data,
                               type: 'POST',
                               dataType: 'json',
@@ -5850,7 +5959,7 @@ function downloadFile(file){
             $.when(shp_download).done(function() {
                         var data = shp_download.responseJSON;
                         if(data.status == 1){
-                            var url = server_url+"/"+data.filepath;
+                            var url = server_url+subdivision+"/"+data.filepath;
                             var file = data.file;
                             var dir = data.dir;
                             downloadRequest(file, url, dir);
@@ -5895,7 +6004,7 @@ function downloadRequest(file, url, download_dir){
 
                     var data = {'downloadedDir':download_dir}
                     $.ajax({
-                          url: "/map/remove_downloaded/",
+                          url: subdivision+"/map/remove_downloaded/",
                           data: data,
                           type: 'POST',
                           dataType: 'json',
@@ -5919,7 +6028,7 @@ function downloadRequest(file, url, download_dir){
 function deleteData(id, type){
 
     var layerDetails = $.ajax({
-                  url:"/map/get_layer_details/"+id+"/"+type+"/",
+                  url:subdivision+"/map/get_layer_details/"+id+"/"+type+"/",
                   dataType: "json",
                   success: "Got Deatials",
                   error: function (xhr) {
@@ -5932,10 +6041,11 @@ function deleteData(id, type){
         var response = jQuery.parseJSON(layerDetails.responseText);
         if(response['status'] == 1){
 
-            if(type == 'map'){
+/*
+		if(type == 'map'){
             var post_data = {sub_proj_page:"my_map", id:id};
             var layerDelete =  $.ajax({
-                              url: "/map/data_delete/",
+                              url: subdivision+"/map/data_delete/",
                               data: post_data,
                               type: 'POST',
                               dataType: 'json',
@@ -5948,7 +6058,7 @@ function deleteData(id, type){
                     console.log("ID3 :"+id+" , Type :"+type);
                     var post_data = {sub_proj_page:"my_group", id:response['gourpID']};
                     var layerDelete =  $.ajax({
-                                      url: "/map/data_delete/",
+                                      url: subdivision+"/map/data_delete/",
                                       data: post_data,
                                       type: 'POST',
                                       dataType: 'json',
@@ -5959,12 +6069,12 @@ function deleteData(id, type){
                 }
 
              }
-
-
+*/
+/*
              if(type == 'layer'){
                 var post_data = {sub_proj_page:"my_layer", id:id};
                 var layerDelete =  $.ajax({
-                                  url: "/map/data_delete/",
+                                  url: subdivision+"/map/data_delete/",
                                   data: post_data,
                                   type: 'POST',
                                   dataType: 'json',
@@ -5976,7 +6086,7 @@ function deleteData(id, type){
                 if(response['gourpID'] > 0){
                     var post_data = {sub_proj_page:"group_layer", id:response['gourpID']};
                     var layerDelete =  $.ajax({
-                                      url: "/map/data_delete/",
+                                      url: subdivision+"/map/data_delete/",
                                       data: post_data,
                                       type: 'POST',
                                       dataType: 'json',
@@ -5987,7 +6097,7 @@ function deleteData(id, type){
                 }
 
              }
-
+*/
         }
     });
 
@@ -6030,3 +6140,267 @@ function map_indicator_sheet(indicator_status){
     })(jQuery);
 }
 /*[END] - Map Tool - Indicator*/
+
+
+/*[START] - AAIB */
+$(document).ready(function() {
+
+    $('#aaib_tab').click(function(){
+        aaib_tab_province();
+    });
+
+    function aaib_tab_province(){
+        var url = subdivision+"/map/province/";
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            //data:values,
+            beforeSend: function(){
+                //preloader_in();
+            },
+            success: function(response){
+                var provinces = response['province'];
+
+                var select = '<option value="">Province</option>';
+
+                $.each(provinces[0], function (index, value) {
+                        select +='<option value="'+index+'">'+value+'</option>'
+                });
+
+                $("#aaib_province").html(select);
+
+                $("#aaib_district").html(select_option("District"));
+                $("#aaib_asc").html(select_option("ASC"));
+                $("#aaib_ds").html(select_option("DS"));
+                $("#aaib_gn").html(select_option("GN"));
+            }
+        });
+    }
+
+    $('#aaib_province').change(function(){
+            var $this = $(this).val();
+            if($this != ''){
+
+               $.ajax({
+                    url: subdivision+"/map/district/"+$this+"/",
+                    dataType: 'json',
+                    //data:values,
+                    beforeSend: function(){
+                        //preloader_in();
+                    },
+                    success: function(response){
+                        var district = response['district'];
+
+                        var select = '<option value="">District</option>';
+
+                        $.each(district[0], function (index, value) {
+                                select +='<option value="'+index+'">'+value+'</option>'
+                        });
+
+                        $("#aaib_district").html(select);
+
+                        $("#aaib_asc").html(select_option("ASC"));
+                        $("#aaib_ds").html(select_option("DS"));
+                        $("#aaib_gn").html(select_option("GN"));
+                    }
+                });
+
+            }
+    });
+
+
+    $('#aaib_district').change(function(){
+            var $this = $(this).val();
+            var province = $("#aaib_province").val();
+
+            if($this != '' && province !=''){
+
+              //ASC
+               $.ajax({
+                    url: subdivision+"/map/asc/"+$this+"/",
+                    dataType: 'json',
+                    //data:values,
+                    beforeSend: function(){
+                        //preloader_in();
+                    },
+                    success: function(response){
+                        var asc = response['asc'];
+
+                        var select = '<option value="">ASC</option>';
+
+                        $.each(asc[0], function (index, value) {
+                                select +='<option value="'+index+'">'+value+'</option>'
+                        });
+
+                        $("#aaib_asc").html(select);
+                    }
+                });
+
+                //DS
+               $.ajax({
+                    url: subdivision+"/map/ds/"+province+"/"+$this+"/",
+                    dataType: 'json',
+                    //data:values,
+                    beforeSend: function(){
+                        //preloader_in();
+                    },
+                    success: function(response){
+                        var ds = response['ds'];
+
+                        var select = '<option value="">DS</option>';
+
+                        $.each(ds[0], function (index, value) {
+                                select +='<option value="'+index+'">'+value+'</option>'
+                        });
+
+                        $("#aaib_ds").html(select);
+
+                        $("#aaib_gn").html(select_option("GN"));
+                    }
+                });
+
+            }
+    });
+
+    $('#aaib_ds').change(function(){
+            var $this = $(this).val();
+            var province = $("#aaib_province").val();
+            var district = $("#aaib_district").val();
+            if($this != '' && province !='' && district !=''){
+
+               $.ajax({
+                    url: subdivision+"/map/gn/"+province+"/"+district+"/"+$this+"/",
+                    dataType: 'json',
+                    //data:values,
+                    beforeSend: function(){
+                        //preloader_in();
+                    },
+                    success: function(response){
+                        var gn = response['gn'];
+
+                        var select = '<option value="">GN</option>';
+
+                        $.each(gn[0], function (index, value) {
+                                select +='<option value="'+index+'">'+value+'</option>'
+                        });
+
+                        $("#aaib_gn").html(select);
+                    }
+                });
+
+            }
+    });
+
+
+    $('#aaib_search').click(function(){
+        aaib_data();
+    });
+
+
+    function select_option(name){
+        var select_null = '<option value="">'+name+'</option>';
+        return select_null;
+    }
+
+});
+
+
+function aaib_data(){
+    (function($) {
+
+        var section = $("#aaib_section").val();
+        var province = $("#aaib_province").val();
+        var district = $("#aaib_district").val();
+        var asc = $("#aaib_asc").val();
+        var ds = $("#aaib_ds").val();
+        var gn = $("#aaib_gn").val();
+
+        if(section != ''){
+            var data = {section:section, province:province, district:district, asc:asc, ds:ds, gn:gn};
+
+            $.ajax({
+                url: subdivision+"/map/aaib_data/",
+                type:'POST',
+                async:true,
+                data:data,
+                dataType: 'json',
+                beforeSend: function(){
+                    preloader_in();
+                },
+                success: function(response){
+                    var $response = response['response'];
+
+                    if($response['status'] == 1){
+                        var geojson = JSON.parse($response['geojson']);
+                        var group = $response['map_group'];
+
+                        if(geojson['features'] !== null){
+                            aaib_geojson_to_map(group, true, group, geojson,1);
+                        }else{
+                            alert_notification_popup('fail', 10);
+                            preloader_out();
+                        }
+                    }
+                }
+            });
+
+        }
+
+    })(jQuery);
+}
+
+$(document).on('click', '.aaib_all_checkbox', function(){
+    var $this = $(this);
+    var isChecked = false;
+
+    if ($this.prop('checked')==true){
+        isChecked = true;
+    }
+
+    $(".aaib_checkbox").each(function(){
+        var oneThis = $(this);
+        oneThis.prop("checked", isChecked );
+    });
+});
+
+
+function aaib_geojson_to_map(fileID, fitBound, lang_reg_no, geojson_data, preloader_status){
+
+    preloader_in();
+
+    var geojsonFileMap = L.geoJson(geojson_data,{onEachFeature: onEachFeature});
+    var groupId = lang_reg_no;
+
+    /* Add Layer Group */
+        var layerGroup = {group_id:groupId, geoJson:geojsonFileMap, group_name:lang_reg_no, fileType:'geojson', fileID:fileID, layer_status:1};
+        layerGroup_add(layerGroup);
+
+        var addToSortableList = layer_li_to_sortable(groupId, lang_reg_no, 1);
+
+        $('#sortable').prepend(addToSortableList);
+
+        $('.layerGroup_opacity_slider').slider({
+            slide: function(event, ui ) {
+                        var $this = $(this);
+                        var value = (ui.value/100);
+                        var groupIdSlider = $this.attr('id');
+                        var group_id = groupIdSlider.substring(7);
+
+                        layerGroup_opacity(group_id, value);
+                }
+        });
+
+        /* / Add Layer Group */
+
+        if(preloader_status == 1){
+            preloader_out();
+        }
+
+
+        if(fitBound === true){
+            //alert_notification_popup('success', 6);
+            map.fitBounds(geojsonFileMap.getBounds(),{padding: [30, 30]});
+        }
+}
+
+/*[END] - AAIB */

@@ -1,5 +1,7 @@
 {% extends 'base_login.html' %}
 {% load static %}
+{% load staticfiles%}
+
 {% block content %}
 
 <div class="banner" style="height:90%;overflow:hidden;">
@@ -112,6 +114,8 @@
                                                 <input type="password" name="password" id="password" autocomplete='off' class="form-control" placeholder="Password">
                                             </div>
 
+                                                <input type="hidden" name="aaib_token" id="aaib_token"  value="{{ access_token }}">
+
                                             <div class="form-group text-center" style="float:left;">
                                                 <input type="checkbox" tabindex="3" class="" name="remember" id="remember">
                                                 <label for="remember" style="position:relative;top:-2px;"><small> Remember Me</small></label>
@@ -124,7 +128,7 @@
 
                                         </form>
 
-                                        <a href="{% url 'geoedge:register' %}" ><span style="color:#D64937;">Don't have an account?</span> sign up now</a>
+<!--                                        <a href="{% url 'geoedge:register' %}" ><span style="color:#D64937;">Don't have an account?</span> sign up now</a>-->
 
                                     </div>
                                     <br>

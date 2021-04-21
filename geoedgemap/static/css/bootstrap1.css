@@ -3642,8 +3642,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar {
   position: relative;
   min-height: 50px;
- 
-  border-bottom: 3px solid #36B0C8;
+  border-bottom: 3px solid #007839;
 }
 @media (min-width: 768px) {
   .navbar {
@@ -4971,8 +4970,8 @@ a.list-group-item-danger.active:focus {
 }
 .panel-primary > .panel-heading {
   color: #fff;
-  background-color: #428bca;
-  border-color: #428bca;
+  background-color: #007839;
+  border-color: #007839;
 }
 .panel-primary > .panel-heading + .panel-collapse .panel-body {
   border-top-color: #428bca;
