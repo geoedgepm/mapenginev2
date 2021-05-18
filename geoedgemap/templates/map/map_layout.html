@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>GeoEDGE Map Engine</title>
+    <title>AAIB GeoEDGE Pro</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -357,6 +357,7 @@
     	box-shadow: 0px 0px 10px #000;
 		/*
 	}
+
 	.ui-state-highlight {
 		width: 210px;
 		height: 1.5em; line-height: 1.2em;
@@ -386,10 +387,10 @@
 	background: rgb(204,204,204);
 	width: 100%;
 	height: 100%;
-	top:47px; 
-	left:0; 
-	z-index: 100000000000000; 
-	position: absolute; 
+	top:47px;
+	left:0;
+	z-index: 100000000000000;
+	position: absolute;
 	display: none;
 }
 
@@ -408,20 +409,21 @@ page[size="A4"] {
 
 page[size="A4"][layout="landscape"] {
   width: 29.7cm;
-  height: 21cm;  
+  height: 21cm;
 }
 
-/*.map_loyout_content {    
+/*.map_loyout_content {
 	background-color: #ffff00;
 	-webkit-print-color-adjust: exact;
-     } 
-*/ 
+     }
+
+*/
 
 page[size="A4"][layout="landscape"] #map_fram {
 		width: 25cm;
 		height: 14cm;
 		padding: 0.5em;
-		margin: 0; 
+		margin: 0;
 		position: absolute;
 		top:0.8cm;
 	}
@@ -444,10 +446,10 @@ page[size="A4"][layout="landscape"] #map_fram {
 
 
 .map_loyout_hand{
-	border: 1px dashed #8c8c8c; 
+	border: 1px dashed #8c8c8c;
 	border-bottom: none;
-	cursor:move; 
-	width: 100%; 
+	cursor:move;
+	width: 100%;
 	height: 6%;
 	padding: 1px;
 	color: #8c8c8c;
@@ -456,16 +458,16 @@ page[size="A4"][layout="landscape"] #map_fram {
 
 
 #map_loyout{
-	border: 1px solid #737373; 
+	border: 1px solid #737373;
 }
 
 .northArrowContent{
 	width: 4cm;
 	height: 4cm;
 	padding: 0.5em;
-	margin: 0; 
-	position: absolute; 
-	top: 1cm; 
+	margin: 0;
+	position: absolute;
+	top: 1cm;
 	right: 2cm;
 	display: none;
 	cursor: move;
@@ -476,9 +478,9 @@ page[size="A4"][layout="landscape"] #map_fram {
 	width: 300px;
 	height: 80px;
 	padding: 0.5em;
-	margin: 0.5; 
-	position: absolute; 
-	top: 5cm; 
+	margin: 0.5;
+	position: absolute;
+	top: 5cm;
 	right: 1cm;
 	cursor: move;
 	z-index: 1000000000000000;
@@ -507,7 +509,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 
 .leaflet-control-graphicscale .label {
     color:#000;
-}		
+}
 
 @media print {
       body, .loyout_panel, page {
@@ -528,7 +530,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 		}
 
 
-}    
+}
 
 /* /Layout Panel */
 
@@ -538,7 +540,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 <body style="width:100% !important;overflow:hidden;background:transparent;" onload='init_load()'>
 
 <div id="preloader">
-  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:100px;margin-left:50px;"></div>
+  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:200px"></div>
 </div>
 
 <!-- [START] - Navbar -->
@@ -550,7 +552,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 	      <span class="icon-bar"></span>
 	      <span class="icon-bar"></span>
 	    </button>
-	    <a class="navbar-brand" href="#">GeoEDGE Pro</a>
+	    <a class="navbar-brand" href="{% url 'geoedge:index' %}">AAIB - GeoEDGE Pro</a>
   	</div>
 
 
@@ -610,9 +612,10 @@ page[size="A4"][layout="landscape"] #map_fram {
     		<li>
     			<a onclick="printMap()" title="Map Print"><span class="glyphicon glyphicon-print"></span></a>
     		</li>
-    		<li id="sh">
+    		<!-- <li id="sh">
     			<a id="modal-968051" onclick="shareMap()"  href="#" data-toggle="modal" title="Map Share"><i class="glyphicon glyphicon-share" ></i><span></span></a>
     		</li>
+			-->
     		<li>
         		<a id="settings_panel" role="button"><span class="glyphicon glyphicon-cog" title="Settings"></span></a>
     		</li>
@@ -646,26 +649,6 @@ page[size="A4"][layout="landscape"] #map_fram {
 						<li><a style="width:100%;" onclick="saveAsMap('save_as_map')"><span class="glyphicon glyphicon-floppy-save"></span> Save As Map</a></li>
 					{% endif %}
 
-        		</ul>
-      		</li>
-      		<li class="dropdown" style="margin-top:-2px;">
-        		<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-toggle="tooltip"  title="Profile">
-					<span id="user_photo">
-						<img class="img-circle" style="width:22px;" id="pro_image" src="{% static 'img/1601481.jpg' %}">
-					</span>
-					<span id="login_uname">
-                        {% if user.is_authenticated %}
-                             {{ user.username }}
-                        {% endif %}
-                    </span>
-					<b class="caret">&nbsp</b>
-				</a>
-
-        		<ul class="dropdown-menu">
-          			<li><a href="{% url 'geoedge:index' %}" style="width:100%;">Profile</a>
-          			</li>
-          			<li class="divider"></li>
-          			<li><a href="{% url 'logout' %}" style="width:100%;">Log out</a></li>
         		</ul>
       		</li>
       	</ul>
@@ -722,7 +705,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 			</div>
 
 		</div>
-		
+
 	</div>
 	<!-- [END] - Map Tool panel on Layout -->
 
@@ -747,7 +730,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 				<div id="scale_bar" style="cursor: move; width: 100%; height: 100%;">
 				</div>
 			</div>
-			
+
 		</div>
 	</page>
 
@@ -775,13 +758,13 @@ page[size="A4"][layout="landscape"] #map_fram {
 				</ul>
 			</div>
 		</li>
-		<li class="list-group-item3" style="margin-left:10px;">
-			<b>My map</b>
-			<div class="scrollable" style="width:100%; max-height:120px; margin-top:10px; overflow-y:auto;">
-				<ul class="list-group" id="my_map_panel">
-				</ul>
-			</div>
-		</li>
+<!--		<li class="list-group-item3" style="margin-left:10px;">-->
+<!--			<b>My map</b>-->
+<!--			<div class="scrollable" style="width:100%; max-height:120px; margin-top:10px; overflow-y:auto;">-->
+<!--				<ul class="list-group" id="my_map_panel">-->
+<!--				</ul>-->
+<!--			</div>-->
+<!--		</li>-->
 	</ul>
 
 </div>

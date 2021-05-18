@@ -1,8 +1,5 @@
-var server_url = 'http://geoedge.lk';
-var subdivision = '/aaib_map';
-//var server_url = 'http://127.0.0.1:8000/';
-//var subdivision = '';
-
+var server_url = 'http://192.168.228.39/mapengine/';
+var subdivision = '/mapengine';
 
 $(function(){
 
@@ -40,8 +37,8 @@ $("#modal-87694").click(function(){
     shp_file_status = 0;
     other_file_status = 0;
     otherfile_count = 0;
-    
-    
+
+
     $('.add_layer_checkbox').prop("checked", false);
 
 });
@@ -453,7 +450,7 @@ $('#opening_panel').click(function(){
                                // $("#overlay_product_list").show();
                             },
                   success: function(data){
-                      
+
                             $("#my_layer_panel").empty();
                             $("#my_map_panel").empty();
                             $("#my_project_panel").empty();
@@ -477,7 +474,7 @@ $('#opening_panel').click(function(){
                             }
                             $('#my_map_panel').append(myMapList);
 							*/
-							
+
                             var myLayerList = '';
                             if(data.my_layers.length > 0){
                                 for(var l=0; l<data.my_layers.length; l++){
@@ -1016,7 +1013,7 @@ $("#layer_submit_save").click(function (){
             $.when(tosave).done(function() {
 
                 var response = jQuery.parseJSON(tosave.responseText);
-                
+
                 if(response['status'] == 1){
 
                     var layerFileID = response['drawLayerId']
@@ -2599,7 +2596,7 @@ function geojsonToMap(layerID, group_id, fitBound, layer_name, filename, fileDir
 
 
 
-        
+
     });
 
 }
@@ -2665,7 +2662,7 @@ function layerGroup_opacity(groupId, value){
         fill = getGroupStyle._layerFill;
         stroke = getGroupStyle._layerStroke;
     }
-    
+
     var updateLayer = L.geoJson(layer_temp, {
                         onEachFeature: onEachFeature,
                         style: {
@@ -5959,7 +5956,7 @@ function downloadFile(file){
             $.when(shp_download).done(function() {
                         var data = shp_download.responseJSON;
                         if(data.status == 1){
-                            var url = server_url+subdivision+"/"+data.filepath;
+                            var url = server_url+"/"+data.filepath;
                             var file = data.file;
                             var dir = data.dir;
                             downloadRequest(file, url, dir);

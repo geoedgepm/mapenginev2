@@ -1,5 +1,5 @@
+  
 """geoedgemap URL Configuration
-
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
 Examples:
@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from geoedge import views
+from django.urls import path,include    
+
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^map/', include('map.urls', namespace='map')),
-    url(r'^', include('geoedge.urls', namespace='geoedge')),
-    url(r'^logout/$', views.user_logout, name='logout'),
+    path('admin/', admin.site.urls),
+    path('map/', include('map.urls', namespace='map')),
+    path('', include('geoedge.urls', namespace='geoedge')),
+    path('logout/$', views.user_logout, name='logout'),
 ]
 
 if settings.DEBUG:

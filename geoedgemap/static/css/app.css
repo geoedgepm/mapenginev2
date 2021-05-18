@@ -3619,11 +3619,11 @@ fieldset[disabled] .i-checks input + i:before {
 .navbar-right {position:absolute;margin-left:20%;}
 #se {width:30%;}
 #sebox {float:left;}
-} 
+}
 @media (max-width: 992px) {
 
 #sebox {width:350px;margin-left:5%;margin-top:0px;}
-		
+
 #se {width:30%;}
 
 .navbar-form {
@@ -3674,4 +3674,3 @@ border-bottom:none;
   left:45%;
   z-index:999999999999999999999999999
 }
-

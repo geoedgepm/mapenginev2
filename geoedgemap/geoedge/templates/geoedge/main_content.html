@@ -1,5 +1,4 @@
 {% extends 'geoedge/index.html' %}
-
 {% block main_content %}
 
 <style>
@@ -48,231 +47,251 @@
       .valid{
        display: none!important;
       }
+
 </style>
 
 <div id="project">
     <div id="projecttab">
         <div class="col-md-12">
 
-         <div id="dashboard_section">
+            <div id="dashboard_section">
 
-             <section class="panel panel-default">
-                 <header class="panel-heading font-bold">
-                     <span id="recent_mheading">My Recent Map &nbsp;</span>
-                     <a id="map_view" href="#" target="_blank" class="btn btn-xs btn-success" style="float:right;">
-                         <span class="glyphicon glyphicon-eye-open"></span> View Map
-                     </a>
-                     <a href="{% url 'map:index' %}" style="float:right;margin-right:10px;" class="btn btn-xs btn-success" id="add_pmap" target="_blank">
-                         <strong>Create Map</strong>
-                     </a>
-                 </header>
+                <section class="panel panel-default">
+                    <header class="panel-heading font-bold">
+                        <span id="recent_mheading">My Recent Map &nbsp;</span>
+                        <a id="map_view" href="#" target="_blank" class="btn btn-xs btn-success" style="float:right;">
+                            <span class="glyphicon glyphicon-eye-open"></span> View Map
+                        </a>
+                        <a href="{% url 'map:index' %}" style="float:right;margin-right:10px;"
+                           class="btn btn-xs btn-success" id="add_pmap" target="_blank">
+                            <strong>Create Map</strong>
+                        </a>
+                    </header>
 
-                 <div class="panel-body">
-                     <div id="map" style="height:310px; width:100%"></div>
-                 </div>
-             </section>
+                    <div class="panel-body">
+                        <div id="map" style="height:310px; width:100%"></div>
+                    </div>
+                </section>
 
-             <section class="panel panel-default">
-                 <header id="chart_heading" class="panel-heading font-bold">My Layers and Maps Summary</header>
-                 <div class="panel-body">
-                     <div class="col-md-10">
-                         <div style="width: 100%;">
-                            <canvas id="map_chart"></canvas>
-                         </div>
-                         <div class="col-md-2">
-                             <div id="lineLegend_div"></div>
-                         </div>
-                     </div>
-                     <br><br>
-             </section>
+                <section class="panel panel-default">
+                    <header id="chart_heading" class="panel-heading font-bold">My Layers and Maps Summary</header>
+                    <div class="panel-body">
+                        <div class="col-md-10">
+                            <div style="width: 100%;">
+                                <canvas id="map_chart"></canvas>
+                            </div>
+                            <div class="col-md-2">
+                                <div id="lineLegend_div"></div>
+                            </div>
+                        </div>
+                        <br><br>
+                </section>
 
-         </div>
+            </div>
 
 
-         <div id="layers_maps_table_section" style="display:none;">
+            <div id="layers_maps_table_section" style="display:none;">
 
-            <section class="panel panel-default">
-                <div class="tab-pane" id="interaction">
-                    <!--<div id="preloader">-->
+                <section class="panel panel-default">
+                    <div class="tab-pane" id="interaction">
+                        <!--<div id="preloader">-->
                         <!--<div id="status"><img src="" style="width:100px;margin-left:50px;"></div>-->
-                    <!--</div>-->
-                    <div class="text-center wrapper">
+                        <!--</div>-->
+                        <div class="text-center wrapper">
 
-                        <div class="col-md-12">
-                            <div id="tb" style="padding:3px;float:right;margin-right:3%;" >
+                            <div class="col-md-12">
+                                <div id="tb" style="padding:3px;float:right;margin-right:3%;">
                                     <div class="row clearfix">
                                         <input id="search_layer" style="line-height:26px;border:1px solid #ccc">
 
-                                             <div class="btn-group" role="group" aria-label="...">
+                                        <div class="btn-group" role="group" aria-label="...">
 
-                                                <a href="#" class="btn btn-primary" plain="true" onclick="doSearch()">
-                                                    <span class="glyphicon glyphicon-search"></span>
-                                                </a>
+                                            <a href="#" class="btn btn-primary" plain="true" onclick="doSearch()">
+                                                <span class="glyphicon glyphicon-search"></span>
+                                            </a>
 
-                                                <a href="#" class="btn btn-warning" plain="true" onclick="searchClose()">
-                                                    <span class="glyphicon glyphicon-refresh" ></span>
-                                                </a>
+                                            <a href="#" class="btn btn-warning" plain="true" onclick="searchClose()">
+                                                <span class="glyphicon glyphicon-refresh"></span>
+                                            </a>
 
-                                             </div>
+                                        </div>
 
                                     </div>
                                 </div>
 
                                 <div id="tb1">
                                     <div id="new_map_button" style="display:none;">
-                                        <a href="{% url 'map:index' %}" id="add_map" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> New Map</a>
+                                        <a href="{% url 'map:index' %}" id="add_map" class="btn btn-xs btn-success"
+                                           target="_blank"><span class="glyphicon glyphicon-plus"></span> New Map</a>
                                     </div>
 
                                     <div id="new_group_button" style="display:none;">
-                                        <a id="add_group" class="btn btn-xs btn-success" onclick="newGroup()"><span class="glyphicon glyphicon-plus"></span> New Group</a>
+                                        <a id="add_group" class="btn btn-xs btn-success" onclick="newGroup()"><span
+                                                class="glyphicon glyphicon-plus"></span> New Group</a>
                                     </div>
 
                                     <div id="new_user_button" style="display:none;">
-                                        <a href="{% url 'geoedge:new_user' %}" id="add_user" class="btn btn-xs btn-success" target="_blank"><span class="glyphicon glyphicon-plus"></span> New User</a>
+                                        <a href="{% url 'geoedge:new_user' %}" id="add_user"
+                                           class="btn btn-xs btn-success" target="_blank"><span
+                                                class="glyphicon glyphicon-plus"></span> New User</a>
                                     </div>
 
                                 </div>
+                            </div>
+
+                            <div id="page_table"></div>
+                            <!--<table id="my_map" style="width:99%;min-height:150px;position:relative;left:400px;"  title="Map Manager" singleSelect="true" idField="itemid" fitColumns="true"  rownumbers="true" pagination="true">-->
+                            <!--</table>-->
+
                         </div>
-
-                        <div id="page_table"></div>
-                        <!--<table id="my_map" style="width:99%;min-height:150px;position:relative;left:400px;"  title="Map Manager" singleSelect="true" idField="itemid" fitColumns="true"  rownumbers="true" pagination="true">-->
-                        <!--</table>-->
-
                     </div>
-                </div>
 
-            </section>
+                </section>
 
-         </div>
+            </div>
 
 
-         <div id="user_profile_section" style="display:none;">
-             <section class="panel panel-default">
+            <div id="user_profile_section" style="display:none;">
+                <section class="panel panel-default">
 
-                 {% if user.is_authenticated %}
+                    {% if user.is_authenticated %}
 
-                 <form id="profile_form" class="form-horizontal" style="margin-top:20px;padding:5px;" method="post" role="form" style="width:70%;" enctype="multipart/form-data" action="" >
-                    <fieldset>
+                    <form id="profile_form" class="form-horizontal" style="margin-top:20px;padding:5px;" method="post"
+                          role="form" style="width:70%;" enctype="multipart/form-data" action="">
+                        <fieldset>
 
-                        <legend>&nbsp;&nbsp;User Manager</legend>
+                            <legend>&nbsp;&nbsp;User Manager</legend>
 
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-md-12">
-                                <span style="margin-left:28%;color:red;margin-bottom:15px;" id="error_msg"></span>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <span style="margin-left:28%;color:red;margin-bottom:15px;"
+                                              id="error_msg"></span>
+                                    </div>
+                                    <br>
                                 </div>
-                                <br>
                             </div>
-                        </div>
 
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="e_fname">First Name</label>
-                            <div class="col-md-5">
-                                <input id="e_fname" name="e_fname" type="text" placeholder="" class="form-control input-md" value="{{ user.first_name }}">
-                                <span class="valid">Field is required.</span>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="e_fname">First Name</label>
+                                <div class="col-md-5">
+                                    <input id="e_fname" name="e_fname" type="text" placeholder=""
+                                           class="form-control input-md" value="{{ user.first_name }}">
+                                    <span class="valid">Field is required.</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="e_lname">Last Name</label>
-                            <div class="col-md-5">
-                                <input id="e_lname" name="e_lname" type="text" placeholder="" class="form-control input-md" value="{{ user.last_name }}">
-                                <span class="valid">Field is required.</span>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="e_lname">Last Name</label>
+                                <div class="col-md-5">
+                                    <input id="e_lname" name="e_lname" type="text" placeholder=""
+                                           class="form-control input-md" value="{{ user.last_name }}">
+                                    <span class="valid">Field is required.</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="e_email">E-Mail</label>
-                            <div class="col-md-5">
-                                <input id="e_email" name="e_email" type="text" placeholder="" disabled class="form-control input-md" value="{{ user.email }}">
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="e_email">E-Mail</label>
+                                <div class="col-md-5">
+                                    <input id="e_email" name="e_email" type="text" placeholder="" disabled
+                                           class="form-control input-md" value="{{ user.email }}">
+                                </div>
                             </div>
-                        </div>
 
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="e_password">Password</label>
-                            <div class="col-md-5">
-                                <input id="e_password" name="e_password" type="password" placeholder="" class="form-control input-md">
-                                <span class="valid">Field is required.</span>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="e_password">Password</label>
+                                <div class="col-md-5">
+                                    <input id="e_password" name="e_password" type="password" placeholder=""
+                                           class="form-control input-md">
+                                    <span class="valid">Field is required.</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="e_cpassword">Confirm Password</label>
-                            <div class="col-md-5">
-                                <input id="e_cpassword" name="e_cpassword" type="password" placeholder="" class="form-control input-md">
-                                <span class="valid">Field is required.</span>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="e_cpassword">Confirm Password</label>
+                                <div class="col-md-5">
+                                    <input id="e_cpassword" name="e_cpassword" type="password" placeholder=""
+                                           class="form-control input-md">
+                                    <span class="valid">Field is required.</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="textarea">Description</label>
-                            <div class="col-md-5">
-                                <textarea class="form-control" rows="6" style="width:100%;" id="e_desc" name="e_desc">{{ user.profile.user_descri }}</textarea>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="textarea">Description</label>
+                                <div class="col-md-5">
+                                    <textarea class="form-control" rows="6" style="width:100%;" id="e_desc"
+                                              name="e_desc">{{ user.profile.user_descri }}</textarea>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="clearfix"></div>
+                            <div class="clearfix"></div>
 
-                          <div class="form-group">
+                            <div class="form-group">
                                 <div class="input-group" style="display:block;">
                                     <label class="col-md-4 control-label" for="textinput">Profile Image</label>
                                     <div class="col-md-6">
                                         <span class="input-group-btn">
                                             <span class="btn btn-primary btn-file">
-                                                Browse&hellip; <input type="file" name="e_photo" accept="image/*" id="filebox">
+                                                Browse&hellip; <input type="file" name="e_photo" accept="image/*"
+                                                                      id="filebox">
                                             </span>
-                                             <input type="text" class="form-control" id="e_photo_filetext" readonly style="">
+                                             <input type="text" class="form-control" id="e_photo_filetext" readonly
+                                                    style="">
                                         </span>
                                     </div>
                                 </div>
-                          </div>
+                            </div>
 
 
-                        <!--<div class="form-group">-->
+                            <!--<div class="form-group">-->
                             <!--<div class="input-group" style="display:block;">-->
-                                <!--<label class="col-md-4 control-label" for="textinput">Logo</label>-->
-                                <!--<div class="col-md-6">-->
-                                    <!--<span class="input-group-btn">-->
-                                        <!--<span class="btn btn-primary btn-file">-->
-                                            <!--Browse&hellip; <input type="file" name="e_logo" accept="image/*" id="filebox" multiple>-->
-                                        <!--</span>-->
-                                        <!--<input type="text" class="form-control" id="logo_filetext" readonly style="">-->
-                                    <!--</span>-->
-                                <!--</div>-->
-		                    <!--</div>-->
-                        <!--</div>-->
+                            <!--<label class="col-md-4 control-label" for="textinput">Logo</label>-->
+                            <!--<div class="col-md-6">-->
+                            <!--<span class="input-group-btn">-->
+                            <!--<span class="btn btn-primary btn-file">-->
+                            <!--Browse&hellip; <input type="file" name="e_logo" accept="image/*" id="filebox" multiple>-->
+                            <!--</span>-->
+                            <!--<input type="text" class="form-control" id="logo_filetext" readonly style="">-->
+                            <!--</span>-->
+                            <!--</div>-->
+                            <!--</div>-->
+                            <!--</div>-->
 
 
-                        <div class="form-group">
-                          <label class="col-md-4 control-label" for="button1id"></label>
-                          <div class="col-md-8">
-                            <button id="user_profile_button" name="button1id" class="btn btn-success" type="button">Save</button>
-                            <button id="user_profile_cancel" name="button2id" class="btn btn-warning">Cancel</button>
-                          </div>
-                        </div>
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="button1id"></label>
+                                <div class="col-md-8">
+                                    <button id="user_profile_button" name="button1id" class="btn btn-success"
+                                            type="button">Save
+                                    </button>
+                                    <button id="user_profile_cancel" name="button2id" class="btn btn-warning">Cancel
+                                    </button>
+                                </div>
+                            </div>
 
-                    </fieldset>
-                </form>
+                        </fieldset>
+                    </form>
 
-              {% endif %}
+                    {% endif %}
 
-             </section>
-         </div>
+                </section>
+            </div>
 
 
-         </div>
-     </div>
- </div>
+        </div>
+    </div>
+</div>
 
- <div id="layerinfo">
- </div>
- <br><br><br><br>
+<div id="layerinfo">
+</div>
+<br><br><br><br>
 
 
 <!--Dialog to Create a new group -->
-<div id="dlg_group" class="easyui-dialog" title="New Group" style="width:400px;height:280px;padding:10px 20px" closed="true" buttons="#dlg-buttons">
+<div id="dlg_group" class="easyui-dialog" title="New Group" style="width:400px;height:280px;padding:10px 20px"
+     closed="true" buttons="#dlg-buttons">
 
     <center><h3>Group Information</h3>
         <small><span id="group_error_msg" style="color:red; margin-top:10px; padding:10px;"></span></small>
@@ -281,9 +300,11 @@
     <form id="fm_group" class="form-horizontal" method="post" novalidate>
 
         <div class="form-group">
-            <label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Name<span style="color:red;">*</span></label>
+            <label class="col-md-3 control-label" for="layer_name" style="margin-top:-10px;">Name<span
+                    style="color:red;">*</span></label>
             <div class="col-md-8">
-                <input id="group_name" name="group_name" type="text" style="" class="form-control input-md" required="true">
+                <input id="group_name" name="group_name" type="text" style="" class="form-control input-md"
+                       required="true">
             </div>
         </div>
 
@@ -299,7 +320,8 @@
 
 <div id="dlg-buttons">
     <a href="javascript:void(0)" class="c6 btn" iconCls="icon-ok" onclick="saveGroup()" style="width:90px">Save</a>
-    <a href="javascript:void(0)" class="btn btn-warning" iconCls="icon-cancel" onclick="javascript:$('#dlg_group').dialog('close')" style="width:90px">Cancel</a>
+    <a href="javascript:void(0)" class="btn btn-warning" iconCls="icon-cancel"
+       onclick="javascript:$('#dlg_group').dialog('close')" style="width:90px">Cancel</a>
 </div>
 
 <!-- /Dialog to Create a new group -->

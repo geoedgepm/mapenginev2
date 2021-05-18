@@ -1,6 +1,6 @@
 {% extends 'base_index.html' %}
 {% load static %}
-{% load staticfiles%}
+
 {% block content %}
 
 <nav role="navigation" class="navbar navbar-default">
@@ -91,9 +91,9 @@
                         <img src="{% static 'img/1601481.jpg' %}" class="img-circle" style="width:23px;">
                     </span>&nbsp;
                     <span id="login_uname">
-                        {% if user.is_authenticated %}
-                             {{ user.username }}
-                        {% endif %}
+                        <!--{% if user.is_authenticated %}-->
+                        <!--     {{ user.username }}-->
+                        <!--{% endif %}-->
                     </span>
                     <b class="caret"></b>
                 </a>
@@ -127,7 +127,7 @@
                                         <img style="width:80%; height:80%;" src="{% static 'img/1601481.jpg' %}" class="img-circle">
                                     </a>
                                     <div>
-                                         <div id="username" class="h3 m-t-xs m-b-xs">
+                                         <div id="username" class="h5 m-t-xs m-b-xs">
                                         {% if user.is_authenticated %}
                                              {{ user.username }}
                                         {% else %}
@@ -150,13 +150,13 @@
                                         <div class="col-xs-6">
                                             <a href="#">
                                                 <span id="map_count" class="m-b-xs h4 block" style="color:#17A05A">0</span>
-                                                <small class="text-info">Layers</small>
+                                                <small class="text-info">Maps</small>
                                             </a>
                                         </div>
                                         <div class="col-xs-6">
                                             <a href="#">
                                                 <span id="layer_count" class="m-b-xs h4 block" style="color:#17A05A">0</span>
-                                                <small class="text-info">Maps</small>
+                                                <small class="text-info">Layers</small>
                                             </a>
                                         </div>
                                     </div>

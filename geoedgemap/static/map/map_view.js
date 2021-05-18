@@ -1,7 +1,5 @@
-var server_url = 'http://geoedge.lk';
-var subdivision = '/aaib_map';
-//var server_url = 'http://127.0.0.1:8000/';
-//var subdivision = '';
+var server_url = 'http://192.168.228.39/mapengine';
+var subdivision = '/mapengine';
 
 var map;
 var layersGroups = [];
@@ -117,7 +115,7 @@ function init(map_id, group_id, mapZoom, mapCenter, layerTitle, data_frame, min_
     if(legend_status == 1){
         (function($) {
             $.ajax({
-                  url:subdivision+"/map/get_legends/"+map_id+"/"+group_id+"/",
+                  url:"/map/get_legends/"+map_id+"/"+group_id+"/",
                   type: 'GET',
                   dataType: "json",
                   error: function (xhr) {
@@ -159,7 +157,7 @@ function geojsons_to_map(layer_id, group_id, fitBound, layer_name){
     }
 
     var get_data = $.ajax({
-                  url:subdivision+"/map/mapsdata/"+layer_id+"/"+groupID+"/",
+                  url:"/map/mapsdata/"+layer_id+"/"+groupID+"/",
                   type:'GET',
                   dataType: "json",
                   success: '', //alert_notification_popup('success', 2),
@@ -188,7 +186,7 @@ function geojsons_to_map(layer_id, group_id, fitBound, layer_name){
                 var fileID = filesData[f].fileId;
                 var layerStatus = filesData[f].layerStatus;
 
-                var file_url = subdivision+"/media/map_layers/"+filename;
+                var file_url = "/media/map_layers/"+filename;
 
                 var getJson = $.ajax({
                         url: file_url,

@@ -3646,7 +3646,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 @media (min-width: 768px) {
   .navbar {
-   
+
   }
 }
 @media (min-width: 768px) {
@@ -3938,7 +3938,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar-default {
   background-color: #f8f8f8;
-  
+
 }
 .navbar-default .navbar-brand {
   color: #777;
@@ -5793,11 +5793,11 @@ a.list-group-item.active small {
     color:#fff;
 }
 .stars {
-    margin:5px auto 1px;    
+    margin:5px auto 1px;
 }
 
 .radio-toolbar input[type="radio"] {
-    display:none; 
+    display:none;
 }
 
 .radio-toolbar label {
@@ -5808,6 +5808,6 @@ a.list-group-item.active small {
     font-size:16px;
 }
 
-.radio-toolbar input[type="radio"]:checked + label { 
+.radio-toolbar input[type="radio"]:checked + label {
     background-color:#bbb;
 }

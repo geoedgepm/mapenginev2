@@ -1,33 +1,34 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 import os
-import json
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.urls import reverse
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.core.files.storage import FileSystemStorage
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_text
+from .tokens import account_activation_token
+from django.core.mail import EmailMessage
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.contrib.auth import update_session_auth_hash
 
 from datetime import datetime, date
 
-from django.shortcuts import render, redirect
-
-from django.contrib.sites.shortcuts import get_current_site
-from django.utils.encoding import force_bytes, force_text
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.template.loader import render_to_string
-from .tokens import account_activation_token
-from django.core.mail import EmailMessage
-
-from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseForbidden
-from django.urls import reverse
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.contrib.auth.models import User
-from django.contrib.auth import update_session_auth_hash
 from .register_forms import RegisterForm
 from map.models import Groups, Group_member, Group_layerfiles, Group_layer_draw
 
+import urllib.request
+import urllib.parse
+import json
+
 import urllib
-import urllib2
+import urllib3
 
 def index(request):
     args = {'user': request.user}
@@ -46,9 +47,8 @@ def user_logout(request):
         pass
 
     logout(request)
-    # url = reverse('geoedge:login', kwargs={'access-token': aaib_taken})
-    url = reverse('geoedge:login')
-    return HttpResponseRedirect(url)
+
+    return HttpResponseRedirect(reverse('geoedge:login'))
 
 
 def user_login(request):
@@ -70,13 +70,13 @@ def user_login(request):
             main_server = settings.AAIB_URL
             url = str(main_server) + 'api/api/user-map-engine&access-token=' + str(accessToken)
             values = {'access_token': accessToken}
-            data = urllib.urlencode(values)
-            req = urllib2.Request(url, data)
-            response = urllib2.urlopen(req)
-            result = json.load(response)
+            http = urllib3.PoolManager()
+            r = http.request('POST', url, fields=values)
+            result = json.loads(r.data.decode('utf-8'))
 
             if result['status'] != 1:
-                return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken, 'error': 'Invalid login details given with AAIB'})
+                return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken,
+                                                              'error': 'Invalid login details given with AAIB'})
 
             user = authenticate(username=username, password=password)
             if user:
@@ -86,37 +86,14 @@ def user_login(request):
                 settings.SESSION_EXPIRE_AT_BROWSER_CLOSE = True
                 return HttpResponseRedirect(reverse('map:index'))
 
-            return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken, 'error': 'Your account was inactive.'})
+            return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken,
+                                                          'error': 'Your account was inactive.'})
 
         except:
             return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken, 'error': 'Your token is invaild'})
 
-
-
     else:
         return render(request, 'geoedge/login.html', {'access-token': access_token, 'access_token': access_token})
-    #
-    #
-    # if request.method == 'POST':
-    #
-    #     username = request.POST.get('username')
-    #     password = request.POST.get('password')
-    #     user = authenticate(username=username, password=password)
-    #     if user:
-    #         if user.is_active:
-    #             login(request, user)
-    #             request.session['remember_me'] = username
-    #             # request.session.set_expiry(settings.LOGIN_SESSION_TIMEOUT)
-    #             # print(request.session.get_expire_at_browser_close())
-    #             settings.SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-    #             # return HttpResponseRedirect(reverse('geoedge:index'))
-    #             return HttpResponseRedirect(reverse('map:index'))
-    #         else:
-    #             return render(request, 'geoedge/login.html', {'error': 'Your account was inactive.'})
-    #     else:
-    #         return render(request, 'geoedge/login.html',{'error': 'Invalid login details given'})
-    # else:
-    #     return render(request,'geoedge/login.html')
 
 
 def register(request):
@@ -128,7 +105,30 @@ def register(request):
         reg_description = request.POST['description']
         form = RegisterForm(request.POST)
         if form.is_valid():
-            if User.objects.filter(username=form.cleaned_data['username']).exists():
+            
+            ''' reCAPTCHA validation '''
+
+            recaptcha_response = request.POST.get('g-recaptcha-response')
+            url = 'https://www.google.com/recaptcha/api/siteverify'
+            values = {
+                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                'response': recaptcha_response
+            }
+            http = urllib3.PoolManager()
+            r = http.request('POST', url, fields=values)
+            result = json.loads(r.data.decode('utf-8'))
+
+
+            ''' /reCAPTCHA validation '''
+            
+            
+            
+            if result['success'] == False:
+                return render(request, template, {
+                    'form': form,
+                    'error_message': 'Invalid reCAPTCHA. Please try again.'
+                })
+            elif User.objects.filter(username=form.cleaned_data['username']).exists():
                 return render(request, template, {
                     'form': form,
                     'error_message': 'Username already exists.'
@@ -196,10 +196,12 @@ def register(request):
                 'token': account_activation_token.make_token(user),
             })
             to_email = form.cleaned_data.get('email')
-            email = EmailMessage(
-                mail_subject, message, to=[to_email]
-            )
-            email.send()
+            
+            email_from = settings.EMAIL_HOST_USER
+            recipient_list = [to_email,]
+            
+            send_mail(mail_subject, message, email_from, recipient_list)
+
             # /Send Email
 
             reform = RegisterForm()
@@ -310,7 +312,7 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
 
-        return redirect('login', {
+        return redirect('/login', {
             'success_message': 'Thank you for your email confirmation. Now you can login your account.',
         })
     else:
@@ -460,10 +462,10 @@ def group(request, gid=None, *args, **kwargs):
                 'layersCount': layersCount,
             })
         else:
-            return redirect('/geoedgepro/')
+            return redirect('')
 
     else:
-        return redirect('/geoedgepro/')
+        return redirect('')
 
 
 @csrf_exempt
