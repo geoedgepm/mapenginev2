@@ -1,5 +1,5 @@
-var server_url = 'http://192.168.228.39/mapengine';
-var subdivision = '/mapengine';
+var server_url = 'http://127.0.0.1:8000/';
+var subdivision = '';
 
 $(function () {
   var url = '';

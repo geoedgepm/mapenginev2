@@ -1088,10 +1088,8 @@ def search_layers_list(request, layer_status_type=None, gid=None, **kwargs):
                 user_id=current_user.pk, layerdraw_status=1).order_by('layer_name')
 
         if (layer_status_type == 'public'):
-            map_layer = Layerfiles.objects.filter(layer_status='public').exclude(
-                user_id=current_user.pk).order_by('layer_name')
-            draw_layer = Layer_draw.objects.filter(layer_status='public').exclude(
-                user_id=current_user.pk).order_by('layer_name')
+            map_layer = Layerfiles.objects.filter(layer_status='public').order_by('layer_name')
+            draw_layer = Layer_draw.objects.filter(layer_status='public').order_by('layer_name')
 
         if (layer_status_type == 'all'):
             map_layer = Layerfiles.objects.filter(Q(user_id=current_user.pk) | Q(

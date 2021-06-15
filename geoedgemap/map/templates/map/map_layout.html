@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>AAIB GeoEDGE Pro</title>
+    <title>GeoEDGE Map Engine</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -117,21 +117,6 @@
 	<!-- [END] - toKML -->
 
 
-	<!-- [START] - GraphicScale -->
-	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/Leaflet.GraphicScale.min.css' %}">
-	<script type="text/javascript" src="{% static 'js/leaflet/Leaflet.GraphicScale.min.js' %}"></script>
-	<!-- [END] - GraphicScale -->
-
-	<!-- [START] - Grid -->
-	<script type="text/javascript" src="{% static 'js/leaflet/L.Grid.js' %}"></script>
-	<!-- [END] - Grid -->
-
-	<!-- [START] - MiniMap -->
-	<link rel="stylesheet" type="text/css" media="all" href="{% static 'css/Control.MiniMap.css' %}">
-	<script type="text/javascript" src="{% static 'js/leaflet/Control.MiniMap.js' %}"></script>
-	<!-- [END] - MiniMap -->
-
-
 	<!-- [START] - Right Side Switch -->
 	<script src="{% static 'js/sidebarEffects.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/w-switcher4963.js' %}"></script>
@@ -142,16 +127,7 @@
 	<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.autocomplete.js' %}"></script>
 
-    <!-- Editable Context -->
-    <script type="text/javascript" src="{% static 'js/jquery-contenteditable.js' %}"></script>
-
-    <link rel="stylesheet" type="text/css" href="{% static 'css/colpick.css' %}">
-    <script type="text/javascript" src="{% static 'js/colpick.js' %}"></script>
-
-    <script type="text/javascript" src="{% static 'js/html2canvas.js' %}"></script>
-
     <script src="{% static 'map/map_main.js' %}"></script>
-    <script src="{% static 'map/map_panel.js' %}"></script>
 
 <style>
 
@@ -188,25 +164,10 @@
 		background-color: #a1d3df;
 	}
 
-	#map .leaflet-control-minimap{
-		top: -10px;
-	    right: 10px;
-	    border: solid rgba(255, 255, 255, 1.0) 2px;
-	    border-radius: 0px;
-		/*display: none;*/
-	}
-
-	#map .leaflet-draw, #map .leaflet-control-minimap-toggle-display, #map .leaflet-control-attribution{
+	#map .leaflet-right, .leaflet-draw{
 		display:none;
 	}
 
-	#map .leaflet-bottom .leaflet-control {
-	    margin-bottom: 50px;
-	}
-
-	#map .leaflet-control-graphicscale{
-		display: none;
-	}
 
 	.leaflet-popup-content-wrapper{
 		/*height: 90px; */
@@ -228,102 +189,6 @@
 		color:#000;
 		border:none;
 		display:none;
-	}
-
-	#open_panel{
-		position:absolute;
-		top:47px;
-		left:65%;
-		z-index:100000000000001;
-		width:350px;
-		display:none;
-	}
-
-	#map_tool{
-		position:absolute;
-		top:47px;
-		left:65%;
-		z-index:100000000000002;
-		width:300px;
-		display:none;
-	}
-
-	#mapTool{
-		position:absolute;
-		top:47px;
-		left:90%;
-		z-index:100000000000002;
-		width:50px;
-		display:none;
-	}
-
-	#mapTool_on_sheet{
-		position:absolute;
-		top:47px;
-		left:90%;
-		z-index:100000000000002;
-		width:50px;
-		display:none;
-	}
-
-	.mapTool_click{
-		padding: 3px;
-		margin: 2px;
-	}
-
-	.mapTool_hand{
-		padding: 5px !important;
-	}
-
-	.mapTool_img{
-		margin: 3px;
-		width: 30px;
-		height: 30px;
-	}
-
-	.map_tool_tile_close{
-		cursor: pointer;
-	}
-
-	#preview_map{
-		position:absolute;
-		top:60px;
-		left:10%;
-		z-index:100000000000002;
-		width:500px;
-		display:none;
-	}
-
-	#previewMap {
-		width:490!important;
-		height:300px!important;
-		background-color: #a1d3df;
-		/*position:fixed;
-		top:10000px;*/
-	}
-
-
-	.list-group-item2 {
-		position: relative;
-		display: block;
-		padding: 6px 10px;
-		margin-bottom: -1px;
-		background-color: #ffffff;
-		/*border: 1px solid #dddddd;*/
-		border-top: 1px solid #dddddd;
-		cursor: pointer;
-		color: #0066cc;
-	}
-
-
-	.list-group-item3 {
-		position: relative;
-		display: block;
-		padding: 3px 5px;
-		margin-bottom: -1px;
-		background-color: #ffffff;
-		/*border: 1px solid #dddddd;*/
-		border-top: 1px solid #dddddd;
 	}
 
 	#con_panel{
@@ -382,165 +247,13 @@
 /* /sortable - Layer Order */
 
 
-/* Layout Panel */
-.loyout_panel{
-	background: rgb(204,204,204);
-	width: 100%;
-	height: 100%;
-	top:47px; 
-	left:0; 
-	z-index: 100000000000000; 
-	position: absolute; 
-	display: none;
-}
-
-page {
-      background: white;
-      display: block;
-      margin: 0 auto;
-      margin-bottom: 0.5cm;
-      /*box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);*/
-    }
-
-page[size="A4"] {
-      width: 21cm;
-      height: 29.7cm;
-    }
-
-page[size="A4"][layout="landscape"] {
-  width: 29.7cm;
-  height: 21cm;  
-}
-
-/*.map_loyout_content {    
-	background-color: #ffff00;
-	-webkit-print-color-adjust: exact;
-     } 
-
-*/ 
-
-page[size="A4"][layout="landscape"] #map_fram {
-		width: 25cm;
-		height: 14cm;
-		padding: 0.5em;
-		margin: 0; 
-		position: absolute;
-		top:0.8cm;
-	}
-
-#map_loyout .leaflet-control-graphicscale{
-		display: none;
-	}
-
-#map_loyout .leaflet-control-minimap{
-	top: 0.2cm;
-    right: -0.2cm;
-    border: solid rgba(255, 255, 255, 1.0) 2px;
-    border-radius: 0px;
-	/*display: none;*/
-}
-
-.leaflet-control-minimap-toggle-display, .leaflet-control-attribution{
-	display: none;
-}
-
-
-.map_loyout_hand{
-	border: 1px dashed #8c8c8c; 
-	border-bottom: none;
-	cursor:move; 
-	width: 100%; 
-	height: 6%;
-	padding: 1px;
-	color: #8c8c8c;
-	display: none;
-}
-
-
-#map_loyout{
-	border: 1px solid #737373; 
-}
-
-.northArrowContent{
-	width: 4cm;
-	height: 4cm;
-	padding: 0.5em;
-	margin: 0; 
-	position: absolute; 
-	top: 1cm; 
-	right: 2cm;
-	display: none;
-	cursor: move;
-	z-index: 1000000000000000;
-}
-
-.mapToolScaleBarContent{
-	width: 300px;
-	height: 80px;
-	padding: 0.5em;
-	margin: 0.5; 
-	position: absolute; 
-	top: 5cm; 
-	right: 1cm;
-	cursor: move;
-	z-index: 1000000000000000;
-	display: none;
-}
-
-.text_style{
-    	font-size: 10pt;
-    	font-family: sans-serif;
-    }
-
-.text_style2{
-	font-size: 11pt;
-	font-family: sans-serif;
-}
-
-.legend_rectangle {
-  	height: 0.35cm;
-  	width: 1.2cm;
-  	border: 1px solid #737373;
-  	margin-left: 20px;
-  	margin:2px;
-  	/*-webkit-print-color-adjust: exact;
-  	background-color: #555;*/
-}
-
-.leaflet-control-graphicscale .label {
-    color:#000;
-}		
-
-@media print {
-      body, .loyout_panel, page {
-		margin: 0;
-        box-shadow: 0;
-      }
-
-      #map_layout_print, #mapTool{
-      	display: none;
-      }
-
-      #scale_bar{
-      	display: block;
-      }
-
-      #map_loyout .leaflet-top {
-			display: none;
-		}
-
-
-}    
-
-/* /Layout Panel */
-
 </style>
 
 </head>
 <body style="width:100% !important;overflow:hidden;background:transparent;" onload='init_load()'>
 
 <div id="preloader">
-  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:200px"></div>
+  <div id="status"><img src="{% static 'img/geo_logo.png' %}" style="width:100px;margin-left:50px;"></div>
 </div>
 
 <!-- [START] - Navbar -->
@@ -552,7 +265,7 @@ page[size="A4"][layout="landscape"] #map_fram {
 	      <span class="icon-bar"></span>
 	      <span class="icon-bar"></span>
 	    </button>
-	    <a class="navbar-brand" href="{% url 'geoedge:index' %}">AAIB - GeoEDGE Pro</a>
+	    <a class="navbar-brand" href="#">GeoEDGE Pro</a>
   	</div>
 
 
@@ -600,22 +313,12 @@ page[size="A4"][layout="landscape"] #map_fram {
 				{% endif %}
 
     		</li>
-			<li>
-    			<a id="opening_panel" role="button" title="Open"><span class="glyphicon glyphicon-folder-open"></span></a>
-    		</li>
-    		<li>
-    			<a id="layout_button" title="Layout" onclick="loyout_panel()"><span class="glyphicon glyphicon-th-large"></span></a>
-    		</li>
-    		<li>
-    			<a id="mapToolPanel" title="Map Tool"><span class="glyphicon glyphicon-pushpin"></span></a>
-    		</li>
     		<li>
     			<a onclick="printMap()" title="Map Print"><span class="glyphicon glyphicon-print"></span></a>
     		</li>
-    		<!-- <li id="sh">
+    		<li id="sh">
     			<a id="modal-968051" onclick="shareMap()"  href="#" data-toggle="modal" title="Map Share"><i class="glyphicon glyphicon-share" ></i><span></span></a>
-    		</li> 
-			-->
+    		</li>
     		<li>
         		<a id="settings_panel" role="button"><span class="glyphicon glyphicon-cog" title="Settings"></span></a>
     		</li>
@@ -639,16 +342,35 @@ page[size="A4"][layout="landscape"] #map_fram {
 
 					{% if gid %}
 						{% if accessAllow == True %}
-        					<li><a style="width:100%;" onclick="saveAsMap('save')"><span class="glyphicon glyphicon-floppy-save"></span> Save Project</a></li>
-							<li><a style="width:100%;" onclick="saveAsMap('save_as')"><span class="glyphicon glyphicon-floppy-save"></span> Save As Project</a></li>
+        					<li><a style="width:100%;" onclick="saveAsMap('save')"><span class="glyphicon glyphicon-save"></span> Save</a></li>
+							<li><a style="width:100%;" onclick="saveAsMap('save_as')"><span class="glyphicon glyphicon-save"></span> Save As</a></li>
 						{% endif %}
 
 					{% else %}
-						<li><a style="width:100%;" onclick="saveAsMap('save')"><span class="glyphicon glyphicon-floppy-save"></span> Save Project</a></li>
-						<li><a style="width:100%;" onclick="saveAsMap('save_as')"><span class="glyphicon glyphicon-floppy-save"></span> Save As Project</a></li>
-						<li><a style="width:100%;" onclick="saveAsMap('save_as_map')"><span class="glyphicon glyphicon-floppy-save"></span> Save As Map</a></li>
+						<li><a style="width:100%;" onclick="saveAsMap('save')"><span class="glyphicon glyphicon-save"></span> Save</a></li>
+						<li><a style="width:100%;" onclick="saveAsMap('save_as')"><span class="glyphicon glyphicon-save"></span> Save As</a></li>
 					{% endif %}
 
+        		</ul>
+      		</li>
+      		<li class="dropdown" style="margin-top:-2px;">
+        		<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-toggle="tooltip"  title="Profile">
+					<span id="user_photo">
+						<img class="img-circle" style="width:22px;" id="pro_image" src="{% static 'img/1601481.jpg' %}">
+					</span>
+					<span id="login_uname">
+                        {% if user.is_authenticated %}
+                             {{ user.username }}
+                        {% endif %}
+                    </span>
+					<b class="caret">&nbsp</b>
+				</a>
+
+        		<ul class="dropdown-menu">
+          			<li><a href="{% url 'geoedge:index' %}" style="width:100%;">Profile</a>
+          			</li>
+          			<li class="divider"></li>
+          			<li><a href="{% url 'logout' %}"  style="width:100%;">Log out</a></li>
         		</ul>
       		</li>
       	</ul>
@@ -656,204 +378,6 @@ page[size="A4"][layout="landscape"] #map_fram {
   	</div>
 </div>
 <!-- [END] - Navbar -->
-
-<!-- [START] - Loyout -->
-<div id="loyout_panel" class="loyout_panel scrollable" style="overflow-y:auto; z-index: 10000000000000000;">
-
-	<!-- [START] - Map Tool panel on Layout -->
-	<div id="map_tools_panel" style="position:fixed; top: 30px; right:6%;">
-
-		<div class="panel panel-default" id="mapTool" style="display: block;">
-			<div class="panel-heading mapTool_hand" style="cursor:move; height: 30px;"></div>
-			<div style="width: 100%">
-				<a role="button" class="mapTool_click" id="mapTool_dataFrame" title="Data Fram">
-					<img class="mapTool_img" src="{% static 'img/map_tool_data_fram.png' %}">
-				</a>
-				<!-- <a role="button" class="mapTool_click" id="mapTool_MapLayer" title="Map Layer">
-					<img class="mapTool_img" src="{% static 'img/map_tool_map_layer.png' %}">
-				</a> -->
-				<a role="button" class="mapTool_click" id="mapToolTitle" title="Title">
-					<img class="mapTool_img" src="{% static 'img/map_tool_title.png' %}">
-				</a>
-				<a role="button" class="mapTool_click" id="mapToolNorthArrow" title="North Arrow">
-					<img class="mapTool_img" src="{% static 'img/map_tool_north_arrow.png' %}">
-				</a>
-				<a role="button" class="mapTool_click" id="mapToolScaleBar" title="Scale Bar">
-					<img class="mapTool_img" src="{% static 'img/map_tool_scale_bar.png' %}">
-				</a>
-				<!-- <a role="button" class="mapTool_click" id="mapToolScaleText" title="Scale Text">
-					<img class="mapTool_img" src="{% static 'img/map_tool_scale_text.png' %}">
-				</a> -->
-				<a role="button" class="mapTool_click" id="mapToolCitation" title="Citation">
-					<img class="mapTool_img" src="{% static 'img/map_tool_citation.png' %}">
-				</a>
-				<a role="button" class="mapTool_click" id="mapToolDescription" title="Description">
-					<img class="mapTool_img" src="{% static 'img/map_tool_description.png' %}">
-				</a>
-				<a role="button" class="mapTool_click" id="mapToolLegend" title="Legend">
-					<img class="mapTool_img" src="{% static 'img/map_tool_legend.png' %}">
-				</a>
-				<a role="button" class="mapTool_click" id="mapToolGrid" title="Grid" onclick="map_tool_grid();">
-					<img class="mapTool_img" src="{% static 'img/map_tool_grid.png' %}">
-				</a>
-				<!-- <a role="button" class="mapTool_click" id="mapToolLabel" title="Label">
-					<img class="mapTool_img" src="{% static 'img/map_tool_label.png' %}">
-				</a> -->
-				<a role="button" class="mapTool_click" id="mapToolIndicator" title="Indicator">
-					<img class="mapTool_img" src="{% static 'img/map_tool_indicator.png' %}">
-				</a>
-			</div>
-
-		</div>
-		
-	</div>
-	<!-- [END] - Map Tool panel on Layout -->
-
-	<page size="A4" layout="landscape">
-		<div id="page_area" style="padding:20px; padding-top: 20px; position: relative;">
-
-			<div id="map_fram" class="map_loyout_content">
-				<div class="map_loyout_hand" title="Drag here"><center><small>Drag here</small></center></div>
-				<div id="map_loyout_area" style="width: 100%; height: 95%;">
-					<div id="map_loyout" style="width: 100%; height: 100%;"></div>
-				</div>
-			</div>
-
-			<div id="north_arrow_content" class="northArrowContent">
-				<div id="north_arrow" style="cursor: move;">
-					<img src="/static/img/north_arrow.png" style="width: 100%; height: 100%;">
-				</div>
-			</div>
-
-			<div id="scale_bar_content" class="mapToolScaleBarContent">
-				<span class="close_btn_span" style="position: absolute; top: -8px; right: -8px; cursor: pointer; display:none;"><img class="close_img" src="/static/img/close_button.png"></span>
-				<div id="scale_bar" style="cursor: move; width: 100%; height: 100%;">
-				</div>
-			</div>
-			
-		</div>
-	</page>
-
-</div>
-<!-- [START] - Loyout -->
-
-
-<!-- [START] - Open panel -->
-
-<div class="panel panel-default" id="open_panel">
-	<div class="panel-heading open_panel_hand" style="cursor:move;">Open Projrct or Layer<span style="float:right;margin-right:5px;color:red;cursor:pointer;" id="oclose">x</span></div>
-
-	<ul class="list-group">
-		<li class="list-group-item3" style="margin-left:10px;">
-			<b>My project</b>
-			<div class="scrollable" style="width:100%; max-height:120px; margin-top:10px; overflow-y:auto;">
-				<ul class="list-group" id="my_project_panel">
-				</ul>
-			</div>
-		</li>
-		<li class="list-group-item3" style="margin-left:10px;">
-			<b>My layer</b>
-			<div class="scrollable" style="width:100%; max-height:120px; margin-top:10px; overflow-y:auto;">
-				<ul class="list-group" id="my_layer_panel">
-				</ul>
-			</div>
-		</li>
-<!--		<li class="list-group-item3" style="margin-left:10px;">-->
-<!--			<b>My map</b>-->
-<!--			<div class="scrollable" style="width:100%; max-height:120px; margin-top:10px; overflow-y:auto;">-->
-<!--				<ul class="list-group" id="my_map_panel">-->
-<!--				</ul>-->
-<!--			</div>-->
-<!--		</li>-->
-	</ul>
-
-</div>
-<!-- [END] - Open panel -->
-
-<!-- [START] - Map Tool panel on Map Sheet -->
-
-<div class="panel panel-default" id="mapTool_on_sheet">
-	<div class="panel-heading mapTool_hand_on_sheet" style="cursor:move; height: 40px;"><center><span style="padding: 3px; color:red;cursor:pointer;" id="mtclose">x</span></center></div>
-	<div style="width: 100%; margin-top: 10px; margin-bottom: 10px;">
-		<a role="button" class="mapTool_click" id="mapTool_dataFrame_sheet" title="Data Fram">
-			<img class="mapTool_img" src="{% static 'img/map_tool_data_fram.png' %}">
-		</a>
-		<!-- <a role="button" class="mapTool_click" id="mapTool_MapLayer_sheet" title="Map Layer">
-			<img class="mapTool_img" src="{% static 'img/map_tool_map_layer.png' %}">
-		</a> -->
-		<a role="button" class="mapTool_click" id="mapToolTitle_sheet" title="Title">
-			<img class="mapTool_img" src="{% static 'img/map_tool_title.png' %}">
-		</a>
-		<a role="button" class="mapTool_click" id="mapToolNorthArrow_sheet" title="North Arrow">
-			<img class="mapTool_img" src="{% static 'img/map_tool_north_arrow.png' %}">
-		</a>
-		<a role="button" class="mapTool_click" id="mapToolScaleBar_sheet" title="Scale Bar">
-			<img class="mapTool_img" src="{% static 'img/map_tool_scale_bar.png' %}">
-		</a>
-		<!-- <a role="button" class="mapTool_click" id="mapToolScaleText_sheet" title="Scale Text">
-			<img class="mapTool_img" src="{% static 'img/map_tool_scale_text.png' %}">
-		</a> -->
-		<a role="button" class="mapTool_click" id="mapToolCitation_sheet" title="Citation">
-			<img class="mapTool_img" src="{% static 'img/map_tool_citation.png' %}">
-		</a>
-		<a role="button" class="mapTool_click" id="mapToolDescription_sheet" title="Description">
-			<img class="mapTool_img" src="{% static 'img/map_tool_description.png' %}">
-		</a>
-		<a role="button" class="mapTool_click" id="mapToolLegend_sheet" title="Legend">
-			<img class="mapTool_img" src="{% static 'img/map_tool_legend.png' %}">
-		</a>
-		<a role="button" class="mapTool_click" id="mapToolGrid_sheet" title="Grid" onclick="map_tool_grid_on_sheet();">
-			<img class="mapTool_img" src="{% static 'img/map_tool_grid.png' %}">
-		</a>
-		<!-- <a role="button" class="mapTool_click" id="mapToolLabel_sheet" title="Label">
-			<img class="mapTool_img" src="{% static 'img/map_tool_label.png' %}">
-		</a> -->
-		<a role="button" class="mapTool_click" id="mapToolIndicator_sheet" title="Indicator">
-			<img class="mapTool_img" src="{% static 'img/map_tool_indicator.png' %}">
-		</a>
-	</div>
-
-</div>
-<!-- [END] - Map Tool panel on Map Sheet -->
-
-
-<!--[START] - Map Preview -->
-
-<div class="panel panel-default" id="preview_map">
-	<div class="panel-heading">Preview Map<span style="float:right;margin-right:5px;color:red;cursor:pointer;" id="pmclose">x</span></div>
-	<div class="scrollable" style="width:100%; padding:5px; max-height:520px; overflow-y:auto;">
-		<table width="100%">
-			<tbody>
-			<tr>
-				<td colspan="4"><center><h3>Title</h3></center></td>
-			</tr>
-			<tr>
-				<td colspan="4">
-					<div id="previewMap"></div>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2"></td>
-				<td colspan="2"></td>
-			</tr>
-			<tr>
-				<td><img class="img1" style="padding:10px; width:50px; height:50px;" src="{% static 'img/north-arrow.png' %}"></td>
-				<td></td>
-				<td colspan="2"></td>
-			</tr>
-			<tr>
-				<td colspan="4" style="padding-bottom:30px; padding-top:20px;">
-					sdgsdf sfdgdfsg dfhfgh fhdgjhf dfdghfd hgk tj vdthjf fghk dfj fdjdf djfjdfgj fsdfs
-				</td>
-			</tr>
-			</tbody>
-		</table>
-	</div>
-</div>
-
-<!--[END] - Map Preview -->
-
-<!-- [END] - Map Tool panel -->
 
 
 <!-- [START] - Setting panel -->

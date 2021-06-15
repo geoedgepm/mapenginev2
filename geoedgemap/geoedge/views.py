@@ -45,56 +45,91 @@ def user_logout(request):
         del request.session['access_token']
     except:
         pass
-
     logout(request)
-
-    return HttpResponseRedirect(reverse('geoedge:login'))
-
+    return render(request, 'geoedge/base.html')
 
 def user_login(request):
     access_token = request.GET.get('access-token')
     if access_token is None and request.method == 'GET':
         # return HttpResponseForbidden('403 Forbidden', content_type='text/html')
-        return render(request, 'geoedge/login.html', {'access-token': access_token, 'error': 'Invaild token'})
+        return render(request, 'geoedge/error.html', {'error': 'Invalid Token'})
 
     if access_token == '' and request.method == 'GET':
         # return HttpResponseForbidden('403 Forbidden', content_type='text/html')
-        return render(request, 'geoedge/login.html', {'access-token': access_token, 'error': 'Invaild token'})
+        return render(request, 'geoedge/error.html', {'error': 'Invalid Token'})
 
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        accessToken = request.POST.get('aaib_token')
+    try:
+        main_server = settings.AAIB_URL
+        url = str(main_server) + 'api/api/user-map-engine&access-token=' + str(access_token)
+        values = {'access_token': access_token}
+        http = urllib3.PoolManager()
+        r = http.request('POST', url, fields=values)
+        result = json.loads(r.data.decode('utf-8'))
 
-        try:
-            main_server = settings.AAIB_URL
-            url = str(main_server) + 'api/api/user-map-engine&access-token=' + str(accessToken)
-            values = {'access_token': accessToken}
-            http = urllib3.PoolManager()
-            r = http.request('POST', url, fields=values)
-            result = json.loads(r.data.decode('utf-8'))
+        if result['status'] != 1:
+            return render(request, 'geoedge/error.html', {'error': 'Invalid Token'})
 
-            if result['status'] != 1:
-                return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken,
-                                                              'error': 'Invalid login details given with AAIB'})
+        aaib_user = aaibUser(result)
+        user = authenticate(username=result['username'], password=aaib_user['password'])
+        if user:
+            login(request, user)
+            request.session['remember_me'] = result['username']
+            request.session['access_token'] = access_token
+            settings.SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+            return HttpResponseRedirect(reverse('map:index'))
+        else:
+            return render(request, 'geoedge/login.html', {'error': 'User could not access.'})
+    except:
+        return render(request, 'geoedge/error.html', {'error': 'Invalid Token'})
 
-            user = authenticate(username=username, password=password)
-            if user:
-                login(request, user)
-                request.session['remember_me'] = username
-                request.session['access_token'] = accessToken
-                settings.SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-                return HttpResponseRedirect(reverse('map:index'))
+def aaibUser(request):
 
-            return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken,
-                                                          'error': 'Your account was inactive.'})
+    if(request['username'] is None):
+        return False
 
-        except:
-            return render(request, 'geoedge/login.html', {'access-token': accessToken, 'access_token': accessToken, 'error': 'Your token is invaild'})
+    if (request['full_name'] is None):
+        return False
 
+    if (request['email'] is None):
+        return False;
+
+    if (request['access_token'] is None):
+        return False;
+
+    if User.objects.filter(username=request['username']).exists():
+        aaib_user = aaibUerUpdate(request)
     else:
-        return render(request, 'geoedge/login.html', {'access-token': access_token, 'access_token': access_token})
+        aaib_user = aaibUerCreate(request)
 
+    if(aaib_user['status'] != 1):
+        return render(request, 'geoedge/error.html', {'error': 'User could not access.'})
+    return aaib_user;
+
+def aaibUerUpdate(request):
+    nowTime = datetime.now()
+    user = User.objects.get(username=request['username'])
+    password = nowTime.strftime("%Y%m%d%H%M%S") + str(request['access_token'])
+    user.first_name = request['full_name']
+    user.set_password(password)
+    user.profile.updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
+    user.save()
+    return {'password': password, 'status': 1, 'user_id': user.pk}
+
+def aaibUerCreate(request):
+    nowTime = datetime.now()
+    password = nowTime.strftime("%Y%m%d%H%M%S")+str(request['access_token'])
+    # Create the user:
+    user = User.objects.create_user(request['username'], request['email'], password)
+    user.is_active = True
+    user.first_name = request['full_name']
+    user.set_password(password)
+    user.save()
+    user.profile.created_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
+    user.profile.updated_at = nowTime.strftime("%Y-%m-%d %H:%M:%S")
+    user.profile.by_user_id = user.pk
+    user.save()
+    userId = user.pk
+    return {'password': password, 'status':1, 'user_id':userId}
 
 def register(request):
     template = 'geoedge/register.html'

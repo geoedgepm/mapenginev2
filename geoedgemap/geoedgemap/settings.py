@@ -25,7 +25,7 @@ SECRET_KEY = '*nj%gpo%%c7^@fy*kf1y819!l!nknqzop-fo)cmj_7&b8qvc2v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.228.39']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.228.39', 'aims.gov.lk']
 #ALLOWED_HOSTS = []
 
 X_FRAME_OPTIONS = 'ALLOWALL'
@@ -91,8 +91,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'map_engine_aaib',
-        'USER': 'my_geoedge_user',
-        'PASSWORD': 'aDFe06276dae094',
+        'USER': 'postgres',
+        'PASSWORD': '12345678',
         'HOST': 'localhost'
     }
 }
@@ -141,12 +141,15 @@ STATIC_URL = '/static/'
 # LOGIN_URL = '/geoedgepro/login/'
 
 LOGIN_EXEMPT_URLS = [
-    r'^video/$',
-    r'^login/$',
-    r'^logout$',
-    r'^register/$',
-    r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-    r'^/map/share_map/(?P<map>[\w-]+)/(?P<layer_type>[\w-]+)$'
+    'video/$',
+    'login/$',
+    'logout$',
+    'register/$',
+    'activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    'map/share_map/(?P<map>[\w-]+)/(?P<layer_type>[\w-]+)$',
+	'map/search_public_layers_list/(?P<layer_status_type>[\w-]+)/$',
+    'map/aaib_layer_data/(?P<layer_id>[\w-]+)/$',
+    'map/aaib_remove_file/$',
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -171,4 +174,4 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600
 LOGIN_SESSION_TIMEOUT = 60
 
 CORS_ORIGIN_ALLOW_ALL = True
-AAIB_URL = 'http://192.168.228.39/index.php?r='
+AAIB_URL = 'http://aims.gov.lk/demo/index.php?r='

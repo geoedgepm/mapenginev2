@@ -1,5 +1,5 @@
-var server_url = 'http://192.168.228.39/mapengine/';
-var subdivision = '/mapengine';
+var server_url = 'http://127.0.0.1:8000/';
+var subdivision = '';
 
 $(function(){
 
@@ -2377,7 +2377,7 @@ function geojsons_to_map(layer_id, group_id, fitBound, layer_name){
                   url:subdivision+"/map/layersdata/"+layer_id+"/"+groupID+"/",
                   type:'GET',
                   dataType: "json",
-                  success: alert_notification_popup('success', 2),
+                  success: alert_notification_popup('success', 11),
                   error: function (xhr) {
                     alert_notification_popup('fail', 7);
                   }
@@ -4030,6 +4030,9 @@ function notification_text(index){
             break;
         case 10:
             text = "AAIB data not found";
+            break;
+		case 11:
+            text = "Loading..";
             break;
         default:
             text = "Try Again Later";
@@ -5989,7 +5992,6 @@ function downloadRequest(file, url, download_dir){
     	}
     	else if(request.readyState == 4) {
     		_OBJECT_URL = URL.createObjectURL(request.response);
-
     		var a = document.createElement('a');
     		a.setAttribute('href', _OBJECT_URL);
     		a.setAttribute('download', file);

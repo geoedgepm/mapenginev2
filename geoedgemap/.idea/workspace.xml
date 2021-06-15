@@ -1,117 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8d1037be-6025-4796-bf45-51170facafb7" name="Default" comment="" />
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <option name="TRACKING_ENABLED" value="true" />
+    <list default="true" id="8d1037be-6025-4796-bf45-51170facafb7" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/geoedge/templates/base_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/base.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/error.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/register_forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/register_forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/base_index.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/base_index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/base_login.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/base_login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/acc_active_email.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/acc_active_email.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/create_user.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/create_user.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/index_group.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/index_group.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/main_content.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/main_content.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/main_content_group.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/main_content_group.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/my_maps.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/my_maps.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/register.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/register.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/templates/geoedge/video.html" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/templates/geoedge/video.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/tokens.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/tokens.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedge/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedge/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedgemap/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedgemap/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedgemap/asgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedgemap/asgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedgemap/middleware.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedgemap/middleware.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedgemap/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedgemap/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedgemap/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedgemap/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geoedgemap/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/geoedgemap/wsgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/templates/map/map_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/map/templates/map/map_layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/templates/map/print_map.html" beforeDir="false" afterPath="$PROJECT_DIR$/map/templates/map/print_map.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/templates/map/share_map.html" beforeDir="false" afterPath="$PROJECT_DIR$/map/templates/map/share_map.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/map/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/map/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/map/map_main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/map/map_main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/map/map_panel.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/map/map_panel.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/map/map_view.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/map/map_view.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/wsgi.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="register_forms.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/geoedge/register_forms.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="12" selection-start-line="12" selection-end-line="12" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="settings.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/geoedgemap/settings.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="370">
-              <caret line="126" lean-forward="true" selection-start-line="126" selection-end-line="126" />
-              <folding>
-                <element signature="e#311#320#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="profile.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/static/js/profile.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="138" column="44" lean-forward="true" selection-start-line="138" selection-start-column="44" selection-end-line="138" selection-end-column="44" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="manage.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/manage.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" selection-start-line="2" selection-end-line="2" />
-              <folding>
-                <element signature="e#84#93#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="main_content.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/geoedge/templates/geoedge/main_content.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" lean-forward="true" selection-start-line="2" selection-end-line="2" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/geoedge/templates/geoedge/index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="85" column="45" selection-start-line="85" selection-start-column="45" selection-end-line="85" selection-end-column="45" />
-              <folding>
-                <element signature="n#style#0;n#ul#0;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#ul#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#a#0;n#li#0;n#ul#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#i#0;n#a#0;n#li#0;n#ul#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#i#1;n#a#0;n#li#0;n#ul#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#li#0;n#ul#0;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#img#0;n#a#0;n#li#0;n#ul#0;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#0;n#div#0;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#ul#1;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#li#0;n#ul#1;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#ul#0;n#li#0;n#ul#1;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#img#0;n#span#0;n#a#0;n#li#1;n#ul#1;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="e#2688#2694#0" expanded="true" />
-                <element signature="n#style#0;n#a#0;n#li#0;n#ul#0;n#li#1;n#ul#1;n#div#1;n#nav#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#img#0;n#a#0;n#div#0;n#div#0;n#div#0;n#section#0;n#section#0;n#aside#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#a#0;n#div#0;n#div#0;n#div#1;n#div#0;n#div#0;n#section#0;n#section#0;n#aside#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#a#0;n#div#1;n#div#0;n#div#1;n#div#0;n#div#0;n#section#0;n#section#0;n#aside#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#section#0;n#section#0;n#aside#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#section#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#section#0;n#section#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#a#0;n#h4#0;n#div#0;n#div#0;n#div#0;n#section#0;n#section#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#ul#0;n#div#0;n#div#1;n#div#0;n#div#0;n#section#0;n#section#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#a#0;n#h4#0;n#div#0;n#div#1;n#div#0;n#section#0;n#section#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#ul#0;n#div#0;n#div#1;n#div#1;n#div#0;n#section#0;n#section#0;n#aside#1;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#section#0;n#!!top" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="base_index.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/geoedge/templates/base_index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="65" column="55" selection-start-line="65" selection-start-column="55" selection-end-line="65" selection-end-column="55" />
-              <folding>
-                <element signature="n#style#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#img#0;n#div#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -140,6 +83,9 @@
       <dir>$PROJECT_DIR$/static</dir>
     </dirStrings>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
@@ -164,6 +110,8 @@
     <option name="width" value="1847" />
     <option name="height" value="1092" />
   </component>
+  <component name="ProjectId" id="1tvzLS7iEoy6ikKSXD5MS0p2B7u" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -199,30 +147,25 @@
       </pane>
     </panes>
   </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/manage.py" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/geoedge/templates/geoedge" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/geoedge" />
       <recent name="$PROJECT_DIR$/geoedge/templates/geoedge" />
+      <recent name="$PROJECT_DIR$/geoedge/templates" />
+      <recent name="$PROJECT_DIR$/geoedge" />
       <recent name="$PROJECT_DIR$/map" />
       <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/geoedge/templates" />
     </key>
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
   </component>
   <component name="RunManager">
     <configuration name="debug" type="PythonConfigurationType" factoryName="Python">
@@ -242,8 +185,12 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
     </configuration>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -299,6 +246,18 @@
       <window_info id="Favorites" order="0" side_tool="true" />
     </layout-to-restore>
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
@@ -316,7 +275,6 @@
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="3" />
     </breakpoint-manager>
   </component>
   <component name="debuggerHistoryManager">
